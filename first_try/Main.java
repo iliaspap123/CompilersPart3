@@ -19,9 +19,9 @@ class Main {
   	    fis = new FileInputStream(arg);
   	    MiniJavaParser parser = new MiniJavaParser(fis);
   	    System.err.println("Program parsed successfully: "+arg);
-//  	    TableVisitor eval = new TableVisitor();
+ 	    TableVisitor eval = new TableVisitor();
         Goal root = parser.Goal();
-//        root.accept(eval, null);
+       root.accept(eval, null);
 
         // // semantic analysis //
         // check c = new check();
@@ -34,11 +34,11 @@ class Main {
         // for(String keys : eval.ClassTypes.keySet()) {
         //   ClassForm M = eval.ClassTypes.get(keys);
         //
-        //   //M.printAll(keys);
+        //   M.printAll(keys);
         // }
 
         ll_visitor c = new ll_visitor();
-        root.accept(c, null);
+        root.accept(c, eval.ClassTypes);
 
 
   	}
@@ -49,7 +49,7 @@ class Main {
   	    System.err.println(ex.getMessage());
   	}
     catch(Exception ex){
-      System.err.println("error");      
+      System.err.println("error");
       System.err.println(ex.getMessage());
     }
   	finally{
