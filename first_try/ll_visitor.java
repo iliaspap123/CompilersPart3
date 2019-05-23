@@ -9,8 +9,10 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
 
   int temps_vars;
   int numIfs;
+  int numLoops;
   String currentClass;
   String currentMeth;
+  ArrayList<String> temp_args;
 
 
   /**
@@ -58,7 +60,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      n.f4.accept(this, argu);
      n.f7.accept(this, argu);
      n.f8.accept(this, argu);
-     n.f10.accept(this, argu);
+     String[] ret = n.f10.accept(this, argu);
+     System.out.println("\tret "+ret[0]+" "+ret[1]);
      System.out.println("}");
     // temp_args.clear();
      return null;
@@ -100,16 +103,43 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
        // System.out.println("exit1: "+pr[0]+pr[1]);
        if((type=check_in_meth(pr[1],methF))!=null) {
          //pr[0] = type2;
-         System.out.println("\t%_"+temps_vars+" = load "+type+", "+type+"* %"+pr[1]);
-         pr[0] = type;
+         if(type.equals("int")) {
+           pr[0] = "i32";
+         }
+         else if(type.equals("boolean")) {
+           pr[0] = "i1";
+         }
+         else {
+           pr[0]="i8*";
+         }
+         System.out.println("\t%_"+temps_vars+" = load "+pr[0]+", "+pr[0]+"* %"+pr[1]);
          pr[1] = "%_"+temps_vars;
          temps_vars++;
          // System.out.println("exit2,1: "+type);
        }
        else {
-         int offset = check_var(currentClass+"."+pr[1],currentClass,argu);
-         System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+offset);
+         // System.out.println("pr1 = "+pr[0]);
+         String[] offset = check_var(pr[1],currentClass,argu);
+         if(offset[0].equals("int")) {
+           offset[0] = "i32";
+         }
+         else if(offset[0].equals("int[]")) {
+           offset[0] = "i32*";
+         }
+         else if(offset[0].equals("boolean")) {
+           offset[0] = "i1";
+         }
+         else {
+           offset[0]="i8*";
+         }
+         System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+offset[1]);
          temps_vars++;
+         System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+offset[0]+"*");
+         temps_vars++;
+         System.out.println("\t%_"+temps_vars+" = load "+offset[0]+", "+offset[0]+"* %_"+(temps_vars-1));
+         temps_vars++;
+         pr[0] = offset[0];
+         pr[1] = "%_"+(temps_vars-1);
          // System.out.println("exit2,2: "+offset);
 
        }
@@ -127,23 +157,6 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     return n.f1.accept(this, argu);
   }
 
-  /**
-   * f0 -> PrimaryExpression()
-   * f1 -> "."
-   * f2 -> Identifier()
-   * f3 -> "("
-   * f4 -> ( ExpressionList() )?
-   * f5 -> ")"
-   */
-  public String[] visit(MessageSend n, Map argu) throws Exception {
-     n.f0.accept(this, argu);
-     n.f1.accept(this, argu);
-     n.f2.accept(this, argu);
-     n.f3.accept(this, argu);
-     n.f4.accept(this, argu);
-     n.f5.accept(this, argu);
-     return null;
-  }
 
   /**
   * f0 -> Identifier()
@@ -201,6 +214,38 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      numIfs++;
      return null;
   }
+
+
+  /**
+   * f0 -> "while"
+   * f1 -> "("
+   * f2 -> Expression()
+   * f3 -> ")"
+   * f4 -> Statement()
+   */
+  public String[] visit(WhileStatement n, Map argu) throws Exception {
+
+     System.out.println("\tbr label %loopInit"+numLoops);
+     System.out.println("loopInit"+numLoops+":");
+     String expr[] = n.f2.accept(this, argu);
+
+     String type = null;
+     String value = null;
+     if(expr!=null ) { // && expr.startsWith("i32 ")
+       type = expr[0];
+       value = expr[1];
+     }
+     System.out.println("\tbr i1 "+value+", label %loopStart"+numLoops+", label %loopEnd"+numLoops);
+     System.out.println("loopStart"+numLoops+":");
+
+     n.f4.accept(this, argu);
+     System.out.println("\tbr label %loopInit"+numLoops);
+     System.out.println("loopEnd"+numLoops+":");
+     numLoops++;
+
+     return null;
+  }
+
 
   /**
    * f0 -> PrimaryExpression()
@@ -318,6 +363,89 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      return res;
   }
 
+  /**
+   * f0 -> PrimaryExpression()
+   * f1 -> "."
+   * f2 -> Identifier()
+   * f3 -> "("
+   * f4 -> ( ExpressionList() )?
+   * f5 -> ")"
+   */
+  public String[] visit(MessageSend n, Map argu) throws Exception {
+     String[] pr = n.f0.accept(this, argu);
+     String[] meth = n.f2.accept(this, argu);
+     int offset = check_meth(currentClass+"."+meth[1],currentClass,argu);
+     System.out.println("; "+currentClass+"."+meth[1]+": "+offset);
+     System.out.println("%_"+temps_vars+" = bitcast i8* "+"%this to i8***");
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = load i8**, i8*** %_"+(temps_vars-1));
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = getelementptr i8*, i8** %_"+(temps_vars-1)+", i32 "+offset);
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = load i8*, i8** %_"+(temps_vars-1));
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+ret_args(meth[1],currentClass,argu));
+     String call = "%_"+temps_vars;
+     temps_vars++;
+     // System.out.println("ret_args: "+ret_args(meth[1],currentClass,argu));
+		// %_6 = bitcast i8* %this to i8***
+		// %_7 = load i8**, i8*** %_6
+		// %_8 = getelementptr i8*, i8** %_7, i32 0
+		// %_9 = load i8*, i8** %_8
+	  // %_10 = bitcast i8* %_9 to i32 (i8*,i32)*
+	// %_12 = load i32, i32* %num
+	// %_13 = sub i32 %_12, 1
+
+     temp_args = new ArrayList();
+     n.f4.accept(this, argu);
+     // System.out.println(args);
+     // %_11 = call i32 %_10(i8* %this, i32 %_13)
+     String line_call = "%_"+temps_vars+"= call "+call+"(i8* %this";
+     for(String x : temp_args) {
+       line_call += ", "+x;
+     }
+     line_call += ")";
+     System.out.println(line_call);
+     // System.out.println("temp_args: "+temp_args);
+     temp_args.clear();
+     String[] res= new String[2];
+     res[0] = "i32";//+++++++++++++++++++++++++
+     res[1] = "%_"+temps_vars;
+     temps_vars++;
+     return res;
+  }
+
+  /**
+   * f0 -> Expression()
+   * f1 -> ExpressionTail()
+   */
+  public String[] visit(ExpressionList n, Map argu) throws Exception {
+     String[] expr = n.f0.accept(this, argu);
+     // System.out.println(expr[0]);
+     temp_args.add(expr[0]+" "+expr[1]);
+     n.f1.accept(this, argu);
+     return null;
+  }
+
+  /**
+   * f0 -> ( ExpressionTerm() )*
+   */
+  public String[] visit(ExpressionTail n,Map argu) throws Exception {
+     return n.f0.accept(this, argu);
+  }
+
+
+  /**
+   * f0 -> ","
+   * f1 -> Expression()
+   */
+  public String[] visit(ExpressionTerm n, Map argu) throws Exception {
+     String[] expr = n.f1.accept(this, argu);
+     // System.out.println(expr[1]);
+     temp_args.add(expr[0]+" "+expr[1]);
+     return null;
+  }
+
 
   /**
    * f0 -> <IDENTIFIER>
@@ -370,6 +498,26 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     String[] res= new String[2];
     res[0] = n.f0.toString();
     res[1] = "i32";
+    return res;
+  }
+
+  /**
+   * f0 -> "true"
+   */
+  public String[] visit(TrueLiteral n, Map argu) throws Exception {
+    String[] res= new String[2];
+    res[0] = n.f0.toString();
+    res[1] = "i1";
+    return res;
+  }
+
+  /**
+   * f0 -> "false"
+   */
+  public String[] visit(FalseLiteral n, Map argu) throws Exception {
+    String[] res= new String[2];
+    res[0] = n.f0.toString();
+    res[1] = "i1";
     return res;
   }
 
@@ -430,13 +578,20 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     return null;
   }
 
-  int check_var(String var,String className,Map ClassTypes) {
+  String[] check_var(String var,String className,Map ClassTypes) {
     /* check if var is definied */
     ClassForm classF =(ClassForm) ClassTypes.get(className);
+    String[] res= new String[2];
+
+    String clean_var = var;
+    var = currentClass+"."+var;
     // System.out.println(var+" here1"+classF.ClassVarInfo.keySet());
     if(classF.ClassVarInfo.containsKey(var)) { //it definied in currentClass
       // System.out.println(var+" here2 "+classF.ClassVarInfo.get(var));
-      return classF.ClassVarInfo.get(var)+8;
+      res[0] = classF.ClassVars.get(clean_var);
+      // System.out.println(res[0]);
+      res[1] = String.valueOf(classF.ClassVarInfo.get(var)+8);
+      return res;
     }
 
     String superClass = classF.Isimpliments;
@@ -444,13 +599,113 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
       classF = (ClassForm) ClassTypes.get(superClass);
 
       if(classF.ClassVars.get(var) != null) {
-        return classF.ClassVarInfo.get(var)+8;
+        res[0] = classF.ClassVars.get(clean_var);
+        res[1] = String.valueOf(classF.ClassVarInfo.get(var)+8);
+        return res;
+      }
+
+      superClass = classF.Isimpliments;
+    }
+    return null;
+  }
+
+
+
+
+  int check_meth(String var,String className,Map ClassTypes) {
+    ClassForm classF =(ClassForm) ClassTypes.get(className);
+
+    if(classF.MethodInfo.containsKey(var)) { //it definied in currentClass
+      return classF.MethodInfo.get(var);
+    }
+
+    String superClass = classF.Isimpliments;
+    while(superClass != null) { //check in all super classes
+      classF = (ClassForm) ClassTypes.get(superClass);
+
+      if(classF.MethodInfo.get(var) != null) {
+        return classF.MethodInfo.get(var);
       }
 
       superClass = classF.Isimpliments;
     }
     return -1;
   }
+
+  String ret_args(String classMeth,String className,Map ClassTypes) {
+    ClassForm M = (ClassForm) ClassTypes.get(className);
+
+    // for(String meth : M.Methods.keySet() ) {
+      MethodForm methF = M.Methods.get(classMeth);
+      String type = "i8*";
+      if(methF.Type.equals("int")) {
+        type = "i32";
+      }
+      else if(methF.Type.equals("boolean")) {
+        type = "i1";
+      }
+      String res = type+" (i8*";
+      for(String keys : methF.Arguments.keySet()) {
+        String arg_type = methF.Arguments.get(keys);
+        if(arg_type.equals("int")) {
+          arg_type = "i32";
+        }
+        else if(arg_type.equals("boolean")) {
+          arg_type = "i1";
+        }
+        else {
+          arg_type = "i8*";
+        }
+        res += (","+arg_type);
+      }
+      res += ")";
+    // }
+    return res;
+  }
+
+
+    /**
+    * f0 -> "class"
+    * f1 -> Identifier()
+    * f2 -> "{"
+    * f3 -> "public"
+    * f4 -> "static"
+    * f5 -> "void"
+    * f6 -> "main"
+    * f7 -> "("
+    * f8 -> "String"
+    * f9 -> "["
+    * f10 -> "]"
+    * f11 -> Identifier()
+    * f12 -> ")"
+    * f13 -> "{"
+    * f14 -> ( VarDeclaration() )*
+    * f15 -> ( Statement() )*
+    * f16 -> "}"
+    * f17 -> "}"
+    */
+    public String[] visit(MainClass n, Map argu) throws Exception {
+     // R _ret=null;
+     // n.f0.accept(this, argu);
+     // n.f1.accept(this, argu);
+     // n.f2.accept(this, argu);
+     // n.f3.accept(this, argu);
+     // n.f4.accept(this, argu);
+     // n.f5.accept(this, argu);
+     // n.f6.accept(this, argu);
+     // n.f7.accept(this, argu);
+     // n.f8.accept(this, argu);
+     // n.f9.accept(this, argu);
+     // n.f10.accept(this, argu);
+     // n.f11.accept(this, argu);
+     // n.f12.accept(this, argu);
+     // n.f13.accept(this, argu);
+     // n.f14.accept(this, argu);
+     // n.f15.accept(this, argu);
+     // n.f16.accept(this, argu);
+     // n.f17.accept(this, argu);
+     return null;
+    }
 
 
 }
