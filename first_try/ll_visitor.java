@@ -115,30 +115,35 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
          System.out.println("\t%_"+temps_vars+" = load "+pr[0]+", "+pr[0]+"* %"+pr[1]);
          pr[1] = "%_"+temps_vars;
          temps_vars++;
+         if(pr[0].equals("i8*")) {
+           pr[0] = type;
+         }
          // System.out.println("exit2,1: "+type);
        }
        else {
          // System.out.println("pr1 = "+pr[0]);
          String[] offset = check_var(pr[1],currentClass,argu);
          if(offset[0].equals("int")) {
-           offset[0] = "i32";
+           pr[0] = "i32";
          }
          else if(offset[0].equals("int[]")) {
-           offset[0] = "i32*";
+           pr[0] = "i32*";
          }
          else if(offset[0].equals("boolean")) {
-           offset[0] = "i1";
+           pr[0] = "i1";
          }
          else {
-           offset[0]="i8*";
+           pr[0]="i8*";
          }
-         System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+offset[1]);
+         System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8*"+ offset[0]+", i32 "+offset[1]);
          temps_vars++;
-         System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+offset[0]+"*");
+         System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+pr[0]+"*");
          temps_vars++;
-         System.out.println("\t%_"+temps_vars+" = load "+offset[0]+", "+offset[0]+"* %_"+(temps_vars-1));
+         System.out.println("\t%_"+temps_vars+" = load "+pr[0]+", "+pr[0]+"* %_"+(temps_vars-1));
          temps_vars++;
-         pr[0] = offset[0];
+         if(pr[0].equals("i8*")) {
+           pr[0] = offset[0];
+         }
          pr[1] = "%_"+(temps_vars-1);
          // System.out.println("exit2,2: "+offset);
 
@@ -147,6 +152,45 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      }
      return pr;
   }
+
+  // /**
+  //  * f0 -> "new"
+  //  * f1 -> "int"
+  //  * f2 -> "["
+  //  * f3 -> Expression()
+  //  * f4 -> "]"
+  //  */
+  // public String[] visit(ArrayAllocationExpression n, Map argu) throws Exception {
+  //    n.f0.accept(this, argu);
+  //    n.f1.accept(this, argu);
+  //    n.f2.accept(this, argu);
+  //    n.f3.accept(this, argu);
+  //    n.f4.accept(this, argu);
+  //    return "int[]";
+  // }
+  //
+
+  /**
+   * f0 -> "new"
+   * f1 -> Identifier()
+   * f2 -> "("
+   * f3 -> ")"
+   */
+  public String[] visit(AllocationExpression n, Map argu) throws Exception {
+     String[] type = n.f1.accept(this, argu);
+     type[0] = type[1];
+     System.out.println("\t%_"+temps_vars+" = call i8* @calloc(i32 1, i32 8)");
+     type[1] = "_"+temps_vars;
+     temps_vars++;
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_0 to i8***");
+     temps_vars++;
+     System.out.println("\t%_"+temps_vars+" = getelementptr [1 x i8*], [1 x i8*]* @.Fac_vtable, i32 0, i32 0");
+     System.out.println("\tstore i8** "+"%_"+temps_vars+", i8*** %_"+(temps_vars-1));
+     temps_vars++;
+     return type;
+  }
+
+
 
   /**
    * f0 -> "("
@@ -167,7 +211,6 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(AssignmentStatement n, Map argu) throws Exception {
    String[] Ident_arr = n.f0.accept(this, argu);
    String[] expr = n.f2.accept(this, argu);
-
    String type = null;
    String value = null;
    if(expr !=null) {
@@ -373,34 +416,33 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
    */
   public String[] visit(MessageSend n, Map argu) throws Exception {
      String[] pr = n.f0.accept(this, argu);
+
+     if(pr[0].equals("this")) {
+       pr[0] = currentClass;
+     }
+     // System.out.println(pr[0]+" pr "+pr[1]);
      String[] meth = n.f2.accept(this, argu);
-     int offset = check_meth(currentClass+"."+meth[1],currentClass,argu);
-     System.out.println("; "+currentClass+"."+meth[1]+": "+offset);
-     System.out.println("%_"+temps_vars+" = bitcast i8* "+"%this to i8***");
+     int offset = check_meth(pr[0]+"."+meth[1],pr[0],argu);
+     System.out.println("\t; "+pr[0]+"."+meth[1]+": "+offset);
+     // System.out.println(pr[0]+" "+pr[1]+" "+" "+offset);
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* %"+pr[1]+" to i8***");
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = load i8**, i8*** %_"+(temps_vars-1));
+     System.out.println("\t%_"+temps_vars+" = load i8**, i8*** %_"+(temps_vars-1));
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = getelementptr i8*, i8** %_"+(temps_vars-1)+", i32 "+offset);
+     System.out.println("\t%_"+temps_vars+" = getelementptr i8*, i8** %_"+(temps_vars-1)+", i32 "+offset);
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = load i8*, i8** %_"+(temps_vars-1));
+     System.out.println("\t%_"+temps_vars+" = load i8*, i8** %_"+(temps_vars-1));
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+ret_args(meth[1],currentClass,argu));
-     String call = "%_"+temps_vars;
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+ret_args(meth[1],pr[0],argu));
+     String call = "\t%_"+temps_vars;
      temps_vars++;
      // System.out.println("ret_args: "+ret_args(meth[1],currentClass,argu));
-		// %_6 = bitcast i8* %this to i8***
-		// %_7 = load i8**, i8*** %_6
-		// %_8 = getelementptr i8*, i8** %_7, i32 0
-		// %_9 = load i8*, i8** %_8
-	  // %_10 = bitcast i8* %_9 to i32 (i8*,i32)*
-	// %_12 = load i32, i32* %num
-	// %_13 = sub i32 %_12, 1
 
      temp_args = new ArrayList();
      n.f4.accept(this, argu);
      // System.out.println(args);
      // %_11 = call i32 %_10(i8* %this, i32 %_13)
-     String line_call = "%_"+temps_vars+"= call "+call+"(i8* %this";
+     String line_call = "\t%_"+temps_vars+" = call i32"+call+"(i8* %"+pr[1];
      for(String x : temp_args) {
        line_call += ", "+x;
      }
@@ -445,6 +487,22 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      temp_args.add(expr[0]+" "+expr[1]);
      return null;
   }
+
+
+
+   /**
+    * f0 -> "System.out.println"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> ";"
+    */
+   public String[] visit(PrintStatement n, Map argu) throws Exception {
+
+      String[] expr = n.f2.accept(this, argu);
+      System.out.println("\tcall void (i32) @print_int(i32 "+expr[1]+")");
+      return null;
+   }
 
 
   /**
@@ -518,6 +576,16 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     String[] res= new String[2];
     res[0] = n.f0.toString();
     res[1] = "i1";
+    return res;
+  }
+
+  /**
+   * f0 -> "this"
+   */
+  public String[] visit(ThisExpression n, Map argu) throws Exception {
+    String[] res= new String[2];
+    res[0] = n.f0.toString();
+    res[1] = n.f0.toString();
     return res;
   }
 
@@ -658,7 +726,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
         }
         res += (","+arg_type);
       }
-      res += ")";
+      res += ")*";
     // }
     return res;
   }
@@ -685,25 +753,17 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     * f17 -> "}"
     */
     public String[] visit(MainClass n, Map argu) throws Exception {
-     // R _ret=null;
-     // n.f0.accept(this, argu);
-     // n.f1.accept(this, argu);
-     // n.f2.accept(this, argu);
-     // n.f3.accept(this, argu);
-     // n.f4.accept(this, argu);
-     // n.f5.accept(this, argu);
+     String[] className = n.f1.accept(this, argu);
+     System.out.println("@."+className[1]+"_vtable = global [0 x i8*] []");
      // n.f6.accept(this, argu);
-     // n.f7.accept(this, argu);
-     // n.f8.accept(this, argu);
-     // n.f9.accept(this, argu);
-     // n.f10.accept(this, argu);
      // n.f11.accept(this, argu);
-     // n.f12.accept(this, argu);
-     // n.f13.accept(this, argu);
-     // n.f14.accept(this, argu);
-     // n.f15.accept(this, argu);
+     System.out.println("define i32 @main() {");
+     n.f14.accept(this, argu);
+     n.f15.accept(this, argu);
      // n.f16.accept(this, argu);
      // n.f17.accept(this, argu);
+     System.out.println("\tret i32 0");
+     System.out.println("}");
      return null;
     }
 
