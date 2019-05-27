@@ -40,6 +40,7 @@ public class TableVisitor extends GJDepthFirst<String, Map> {
         LinkedHashMap<String,String> tmpClassF = elem.ClassVars;
         elem.MyAddVar(className+"."+key,tmpClassF.get(key));
       }
+      // elem.MyAddVar(className+"._total",tmpClassF.get(key));
     }
 
     if(n.f4.present()) {

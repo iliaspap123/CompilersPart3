@@ -34,6 +34,9 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      String[] type = n.f1.accept(this, argu);
      String[] meth = n.f2.accept(this, argu);
      currentMeth = meth[1];
+     if(!type[1].equals("i1") &&!type[1].equals("i32") && !type[1].equals("i8*")) {
+       type[1] = "i8*";
+     }
      String str_def = "define "+type[1]+" @"+currentClass+"."+meth[1]+"(i8* %this";
      //temp_args = new ArrayList<String[]>();
      ClassForm classF = (ClassForm) argu.get(currentClass);
@@ -61,7 +64,11 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      n.f7.accept(this, argu);
      n.f8.accept(this, argu);
      String[] ret = n.f10.accept(this, argu);
-     System.out.println("\tret "+ret[0]+" "+ret[1]);
+     String temp_type = ret[0];
+     if(!ret[0].equals("i1") && !ret[0].equals("i32") && !ret[0].equals("i8*")) {
+       temp_type = "i8*";
+     }
+     System.out.println("\tret "+temp_type+" "+ret[1]);
      System.out.println("}");
     // temp_args.clear();
      return null;
@@ -135,7 +142,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
          else {
            pr[0]="i8*";
          }
-         System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8*"+ offset[0]+", i32 "+offset[1]);
+         System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+offset[1]);
          temps_vars++;
          System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+pr[0]+"*");
          temps_vars++;
@@ -179,17 +186,25 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(AllocationExpression n, Map argu) throws Exception {
      String[] type = n.f1.accept(this, argu);
      type[0] = type[1];
-     System.out.println("\t%_"+temps_vars+" = call i8* @calloc(i32 1, i32 8)");
-     type[1] = "_"+temps_vars;
+     ClassForm classF = (ClassForm) argu.get(type[0]);
+     int size = (classF.offset_var+8);
+     int num_meth = classF.Methods.size();
+     System.out.println("\t%_"+temps_vars+" = call i8* @calloc(i32 1, i32 "+ size+")");
+     type[1] = "%_"+temps_vars;
      temps_vars++;
-     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_0 to i8***");
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* "+type[1]+" to i8***");
      temps_vars++;
-     System.out.println("\t%_"+temps_vars+" = getelementptr [1 x i8*], [1 x i8*]* @.Fac_vtable, i32 0, i32 0");
+     System.out.println("\t%_"+temps_vars+" = getelementptr ["+num_meth+" x i8*], ["+num_meth+" x i8*]* @."+type[0]+"_vtable, i32 0, i32 0");
      System.out.println("\tstore i8** "+"%_"+temps_vars+", i8*** %_"+(temps_vars-1));
      temps_vars++;
      return type;
   }
 
+  int count_size(Map ClassTypes,String className) {
+    ClassForm classF = (ClassForm) ClassTypes.get(className);
+    System.out.println("size "+(classF.offset_var+8));
+    return 0;
+  }
 
 
   /**
@@ -210,12 +225,44 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   */
   public String[] visit(AssignmentStatement n, Map argu) throws Exception {
    String[] Ident_arr = n.f0.accept(this, argu);
+
+   ClassForm classF = (ClassForm) argu.get(currentClass);
+   MethodForm methF = classF.Methods.get(currentMeth);
+   if(check_in_meth(Ident_arr[1],methF)==null) {
+     String[] offset = check_var(Ident_arr[1],currentClass,argu);
+     if(offset[0].equals("int")) {
+       Ident_arr[0] = "i32";
+     }
+     else if(offset[0].equals("int[]")) {
+       Ident_arr[0] = "i32*";
+     }
+     else if(offset[0].equals("boolean")) {
+       Ident_arr[0] = "i1";
+     }
+     else {
+       Ident_arr[0]="i8*";
+     }
+     System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+offset[1]);
+     temps_vars++;
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+Ident_arr[0]+"*");
+     temps_vars++;
+
+     // if(pr[0].equals("i8*")) {
+     //   pr[0] = offset[0];
+     // }
+     Ident_arr[1] = "_"+(temps_vars-1);
+
+   }
+
    String[] expr = n.f2.accept(this, argu);
    String type = null;
    String value = null;
    if(expr !=null) {
      type = expr[0];
      value = expr[1];
+   }
+   if(!type.equals("i1") && !type.equals("i32") && !type.equals("i8*")) {
+     type = "i8*";
    }
    System.out.println("\tstore "+ type + " "+ value +", "+type+"* %"+Ident_arr[1]);
    return null;
@@ -425,7 +472,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      int offset = check_meth(pr[0]+"."+meth[1],pr[0],argu);
      System.out.println("\t; "+pr[0]+"."+meth[1]+": "+offset);
      // System.out.println(pr[0]+" "+pr[1]+" "+" "+offset);
-     System.out.println("\t%_"+temps_vars+" = bitcast i8* %"+pr[1]+" to i8***");
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* "+pr[1]+" to i8***");
      temps_vars++;
      System.out.println("\t%_"+temps_vars+" = load i8**, i8*** %_"+(temps_vars-1));
      temps_vars++;
@@ -434,7 +481,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      System.out.println("\t%_"+temps_vars+" = load i8*, i8** %_"+(temps_vars-1));
      temps_vars++;
      System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+ret_args(meth[1],pr[0],argu));
-     String call = "\t%_"+temps_vars;
+     String call = "%_"+temps_vars;
      temps_vars++;
      // System.out.println("ret_args: "+ret_args(meth[1],currentClass,argu));
 
@@ -442,7 +489,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      n.f4.accept(this, argu);
      // System.out.println(args);
      // %_11 = call i32 %_10(i8* %this, i32 %_13)
-     String line_call = "\t%_"+temps_vars+" = call i32"+call+"(i8* %"+pr[1];
+     String type_meth = get_meth_type(meth[1],pr[0],argu);
+     String line_call = "\t%_"+temps_vars+" = call "+type_meth+" "+call+"(i8* "+pr[1];
      for(String x : temp_args) {
        line_call += ", "+x;
      }
@@ -451,7 +499,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      // System.out.println("temp_args: "+temp_args);
      temp_args.clear();
      String[] res= new String[2];
-     res[0] = "i32";//+++++++++++++++++++++++++
+     res[0] = type_meth;//+++++++++++++++++++++++++
      res[1] = "%_"+temps_vars;
      temps_vars++;
      return res;
@@ -464,6 +512,9 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(ExpressionList n, Map argu) throws Exception {
      String[] expr = n.f0.accept(this, argu);
      // System.out.println(expr[0]);
+     if(!expr[0].equals("i1") &&!expr[0].equals("i32") && !expr[0].equals("i8*")) {
+       expr[0] = "i8*";
+     }
      temp_args.add(expr[0]+" "+expr[1]);
      n.f1.accept(this, argu);
      return null;
@@ -484,10 +535,52 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(ExpressionTerm n, Map argu) throws Exception {
      String[] expr = n.f1.accept(this, argu);
      // System.out.println(expr[1]);
+     if(!expr[0].equals("i1") &&!expr[0].equals("i32") && !expr[0].equals("i8*")) {
+       expr[0] = "i8*";
+     }
      temp_args.add(expr[0]+" "+expr[1]);
      return null;
   }
 
+  /**
+   * f0 -> "!"
+   * f1 -> Clause()
+   */
+  public String[] visit(NotExpression n, Map argu) throws Exception {
+     String[] ret = n.f1.accept(this, argu);
+     System.out.println("%_"+temps_vars+" = xor i1 1, "+ret[1]);
+     ret[1] = "%_"+temps_vars;
+     temps_vars++;
+     return ret;
+  }
+
+  /**
+   * f0 -> Clause()
+   * f1 -> "&&"
+   * f2 -> Clause()
+   */
+  public String[] visit(AndExpression n, Map argu) throws Exception {
+     String[] res1 = n.f0.accept(this, argu);
+
+     System.out.println("\tbr label %andStart"+numIfs);
+     System.out.println("\tandStart"+numIfs+":");
+     System.out.println("\tbr i1 "+res1[1]+", label %andclause"+numIfs+", label %andclause"+(numIfs+2));
+
+     System.out.println("andclause"+numIfs+":");
+
+     String[] res2 = n.f2.accept(this, argu);
+     System.out.println("\tbr label %andclause"+(numIfs+1));
+
+     System.out.println("andclause"+(numIfs+1)+":");
+     System.out.println("\tbr label %andclause"+(numIfs+2));
+
+     System.out.println("andclause"+(numIfs+2)+":");
+
+     System.out.println("%_"+temps_vars+" = phi i1 [ 0,%andStart"+numIfs+"], [ "+res2[1]+", %andclause"+(numIfs+2)+"]");
+     res2[1] = "%_"+temps_vars;
+     temps_vars++;
+     return res2;
+  }
 
 
    /**
@@ -502,6 +595,21 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
       String[] expr = n.f2.accept(this, argu);
       System.out.println("\tcall void (i32) @print_int(i32 "+expr[1]+")");
       return null;
+   }
+
+   /**
+    * f0 -> ArrayType()
+    *       | BooleanType()
+    *       | IntegerType()
+    *       | Identifier()
+    */
+   public String[] visit(Type n, Map argu) throws Exception {
+      String[] type = n.f0.accept(this, argu);
+      if(!type[1].equals("i1") && !type[1].equals("i32") && !type[1].equals("i8*")) {
+        type[1] = "i8*";
+      }
+      return type;
+      // return n.f0.accept(this, argu);
    }
 
 
@@ -564,8 +672,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
    */
   public String[] visit(TrueLiteral n, Map argu) throws Exception {
     String[] res= new String[2];
-    res[0] = n.f0.toString();
-    res[1] = "i1";
+    res[0] = "i1";
+    res[1] = "1";
     return res;
   }
 
@@ -574,8 +682,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
    */
   public String[] visit(FalseLiteral n, Map argu) throws Exception {
     String[] res= new String[2];
-    res[0] = n.f0.toString();
-    res[1] = "i1";
+    res[0] = "i1";
+    res[1] = "0";
     return res;
   }
 
@@ -585,7 +693,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(ThisExpression n, Map argu) throws Exception {
     String[] res= new String[2];
     res[0] = n.f0.toString();
-    res[1] = n.f0.toString();
+    res[1] = "%"+n.f0.toString();
     return res;
   }
 
@@ -604,6 +712,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      ClassForm M = (ClassForm) argu.get(currentClass);
      // M.printAll(currentClass);
      System.out.println("@."+className[1]+"_vtable = global ["+M.MethodInfo.size()+" x i8*] [");
+     boolean first = true;
      for(String meth : M.Methods.keySet() ) {
        MethodForm methF = M.Methods.get(meth);
        String type = "i8*";
@@ -612,6 +721,12 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
        }
        else if(methF.Type.equals("boolean")) {
          type = "i1";
+       }
+       if(first) {
+         first = false;
+       }
+       else {
+         System.out.print(",");
        }
        System.out.print("\t\t\t\ti8* bitcast ("+type+"(i8*");
        for(String keys : methF.Arguments.keySet()) {
@@ -698,6 +813,21 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
       superClass = classF.Isimpliments;
     }
     return -1;
+  }
+
+  String get_meth_type(String classMeth,String className,Map ClassTypes) {
+    ClassForm M = (ClassForm) ClassTypes.get(className);
+
+    MethodForm methF = M.Methods.get(classMeth);
+    if(methF.Type.equals("int")) {
+      return "i32";
+    }
+    else if(methF.Type.equals("boolean")) {
+      return "i1";
+    }
+    else {
+      return "i8*";
+    }
   }
 
   String ret_args(String classMeth,String className,Map ClassTypes) {
