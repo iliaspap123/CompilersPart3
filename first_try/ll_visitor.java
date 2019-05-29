@@ -31,6 +31,9 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
    * f12 -> "}"
    */
   public String[] visit(MethodDeclaration n, Map argu) throws Exception {
+     temps_vars = 0;
+     numIfs = 0;
+     numLoops = 0;
      String[] type = n.f1.accept(this, argu);
      String[] meth = n.f2.accept(this, argu);
      currentMeth = meth[1];
@@ -469,7 +472,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      }
      // System.out.println(pr[0]+" pr "+pr[1]);
      String[] meth = n.f2.accept(this, argu);
-     int offset = check_meth(pr[0]+"."+meth[1],pr[0],argu);
+     int offset = check_meth(pr[0]+"."+meth[1],pr[0],argu)/8;
      System.out.println("\t; "+pr[0]+"."+meth[1]+": "+offset);
      // System.out.println(pr[0]+" "+pr[1]+" "+" "+offset);
      System.out.println("\t%_"+temps_vars+" = bitcast i8* "+pr[1]+" to i8***");
@@ -576,7 +579,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
 
      System.out.println("andclause"+(numIfs+2)+":");
 
-     System.out.println("%_"+temps_vars+" = phi i1 [ 0,%andStart"+numIfs+"], [ "+res2[1]+", %andclause"+(numIfs+2)+"]");
+     System.out.println("%_"+temps_vars+" = phi i1 [ 0,%andStart"+numIfs+"], [ "+res2[1]+", %andclause"+(numIfs+1)+"]");
      res2[1] = "%_"+temps_vars;
      temps_vars++;
      return res2;
@@ -698,6 +701,60 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   }
 
   /**
+   * f0 -> MainClass()
+   * f1 -> ( TypeDeclaration() )*
+   * f2 -> <EOF>
+   */
+  public String[] visit(Goal n, Map argu) throws Exception {
+     HashMap<String,ClassForm> hash = (HashMap<String,ClassForm>) argu;
+     for(String className : hash.keySet() ) {
+      ClassForm M = hash.get(className);
+      if(M.Methods.containsKey("main")) {
+        continue;
+      }
+      System.out.println("@."+className+"_vtable = global ["+M.MethodInfo.size()+" x i8*] [");
+      boolean first = true;
+      for(String meth : M.Methods.keySet() ) {
+        MethodForm methF = M.Methods.get(meth);
+        String type = "i8*";
+        if(methF.Type.equals("int")) {
+          type = "i32";
+        }
+        else if(methF.Type.equals("boolean")) {
+          type = "i1";
+        }
+        if(first) {
+          first = false;
+        }
+        else {
+          System.out.print(",");
+        }
+        System.out.print("\t\t\t\ti8* bitcast ("+type+"(i8*");
+        for(String keys : methF.Arguments.keySet()) {
+          String arg_type = methF.Arguments.get(keys);
+          if(arg_type.equals("int")) {
+            arg_type = "i32";
+          }
+          else if(arg_type.equals("boolean")) {
+            arg_type = "i1";
+          }
+          else {
+            arg_type = "i8*";
+          }
+          System.out.print(","+arg_type);
+        }
+        System.out.println(")* @"+className+"."+meth+" to i8*)");
+      }
+
+      System.out.println("\t\t\t\t]");
+     }
+     n.f0.accept(this, argu);
+     n.f1.accept(this, argu);
+     return null;
+  }
+
+
+  /**
    * f0 -> "class"
    * f1 -> Identifier()
    * f2 -> "{"
@@ -708,46 +765,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(ClassDeclaration n, Map argu) throws Exception {
      String[] className = n.f1.accept(this, argu);
      currentClass = className[1];
-
-     ClassForm M = (ClassForm) argu.get(currentClass);
-     // M.printAll(currentClass);
-     System.out.println("@."+className[1]+"_vtable = global ["+M.MethodInfo.size()+" x i8*] [");
-     boolean first = true;
-     for(String meth : M.Methods.keySet() ) {
-       MethodForm methF = M.Methods.get(meth);
-       String type = "i8*";
-       if(methF.Type.equals("int")) {
-         type = "i32";
-       }
-       else if(methF.Type.equals("boolean")) {
-         type = "i1";
-       }
-       if(first) {
-         first = false;
-       }
-       else {
-         System.out.print(",");
-       }
-       System.out.print("\t\t\t\ti8* bitcast ("+type+"(i8*");
-       for(String keys : methF.Arguments.keySet()) {
-         String arg_type = methF.Arguments.get(keys);
-         if(arg_type.equals("int")) {
-           arg_type = "i32";
-         }
-         else if(arg_type.equals("boolean")) {
-           arg_type = "i1";
-         }
-         else {
-           arg_type = "i8*";
-         }
-         System.out.print(","+arg_type);
-       }
-       System.out.println(")* @"+currentClass+"."+meth+" to i8*)");
-     }
-
-     System.out.println("\t\t\t\t]");
-     // n.f3.accept(this, argu);
-      n.f4.accept(this, argu);
+     n.f4.accept(this, argu);
      return null;
   }
 

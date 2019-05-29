@@ -1,0 +1,1433 @@
+0a1,6
+> @.LinkedList_vtable = global [0 x i8*] []
+> @.Element_vtable = global [6 x i8*] [i8* bitcast (i1 (i8*,i32, i32, i1)* @Element.Init to i8*), i8* bitcast (i32 (i8*)* @Element.GetAge to i8*), i8* bitcast (i32 (i8*)* @Element.GetSalary to i8*), i8* bitcast (i1 (i8*)* @Element.GetMarried to i8*), i8* bitcast (i1 (i8*,i8*)* @Element.Equal to i8*), i8* bitcast (i1 (i8*,i32, i32)* @Element.Compare to i8*)]
+> @.List_vtable = global [10 x i8*] [i8* bitcast (i1 (i8*)* @List.Init to i8*), i8* bitcast (i1 (i8*,i8*, i8*, i1)* @List.InitNew to i8*), i8* bitcast (i8* (i8*,i8*)* @List.Insert to i8*), i8* bitcast (i1 (i8*,i8*)* @List.SetNext to i8*), i8* bitcast (i8* (i8*,i8*)* @List.Delete to i8*), i8* bitcast (i32 (i8*,i8*)* @List.Search to i8*), i8* bitcast (i1 (i8*)* @List.GetEnd to i8*), i8* bitcast (i8* (i8*)* @List.GetElem to i8*), i8* bitcast (i8* (i8*)* @List.GetNext to i8*), i8* bitcast (i1 (i8*)* @List.Print to i8*)]
+> @.LL_vtable = global [1 x i8*] [i8* bitcast (i32 (i8*)* @LL.Start to i8*)]
+> 
+> 
+3a10
+> 
+7,9c14,16
+< %_str = bitcast [4 x i8]* @_cint to i8*
+< call i32 (i8*, ...) @printf(i8* %_str, i32 %i)
+< ret void
+---
+>     %_str = bitcast [4 x i8]* @_cint to i8*
+>     call i32 (i8*, ...) @printf(i8* %_str, i32 %i)
+>     ret void
+10a18
+> 
+12,41c20,25
+<   
+< %_str = bitcast [15 x i8]* @_cOOB to i8*
+< call i32 (i8*, ...) @printf(i8* %_str)
+< call void @exit(i32 1)
+< ret void
+< }
+< @.LL_vtable = global [1 x i8*] [
+< 				i8* bitcast (i32(i8*)* @LL.Start to i8*)
+< 				]
+< @.Element_vtable = global [6 x i8*] [
+< 				i8* bitcast (i1(i8*,i32,i32,i1)* @Element.Init to i8*)
+< ,				i8* bitcast (i32(i8*)* @Element.GetAge to i8*)
+< ,				i8* bitcast (i32(i8*)* @Element.GetSalary to i8*)
+< ,				i8* bitcast (i1(i8*)* @Element.GetMarried to i8*)
+< ,				i8* bitcast (i1(i8*,i8*)* @Element.Equal to i8*)
+< ,				i8* bitcast (i1(i8*,i32,i32)* @Element.Compare to i8*)
+< 				]
+< @.List_vtable = global [10 x i8*] [
+< 				i8* bitcast (i1(i8*)* @List.Init to i8*)
+< ,				i8* bitcast (i1(i8*,i8*,i8*,i1)* @List.InitNew to i8*)
+< ,				i8* bitcast (i8*(i8*,i8*)* @List.Insert to i8*)
+< ,				i8* bitcast (i1(i8*,i8*)* @List.SetNext to i8*)
+< ,				i8* bitcast (i8*(i8*,i8*)* @List.Delete to i8*)
+< ,				i8* bitcast (i32(i8*,i8*)* @List.Search to i8*)
+< ,				i8* bitcast (i1(i8*)* @List.GetEnd to i8*)
+< ,				i8* bitcast (i8*(i8*)* @List.GetElem to i8*)
+< ,				i8* bitcast (i8*(i8*)* @List.GetNext to i8*)
+< ,				i8* bitcast (i1(i8*)* @List.Print to i8*)
+< 				]
+< @.LinkedList_vtable = global [0 x i8*] []
+---
+>     %_str = bitcast [15 x i8]* @_cOOB to i8*
+>     call i32 (i8*, ...) @printf(i8* %_str)
+>     call void @exit(i32 1)
+>     ret void
+> }
+> 
+47c31
+< 	; LL.Start: 0
+---
+> 	; LL.Start : 0
+54a39
+> 	
+56a42
+> 
+64,76c50,64
+< 
+< 	%_0 = getelementptr i8, i8* %this, i32 8
+< 	%_1 = bitcast i8* %_0 to i32*
+< 	%_2 = load i32, i32* %v_Age
+< 	store i32 %_2, i32* %_1
+< 	%_3 = getelementptr i8, i8* %this, i32 12
+< 	%_4 = bitcast i8* %_3 to i32*
+< 	%_5 = load i32, i32* %v_Salary
+< 	store i32 %_5, i32* %_4
+< 	%_6 = getelementptr i8, i8* %this, i32 16
+< 	%_7 = bitcast i8* %_6 to i1*
+< 	%_8 = load i1, i1* %v_Married
+< 	store i1 %_8, i1* %_7
+---
+> 	%_0 = load i32, i32* %v_Age
+> 	%_1 = getelementptr i8, i8* %this, i32 8
+> 	%_2 = bitcast i8* %_1 to i32*
+> 	store i32 %_0, i32* %_2
+> 	
+> 	%_3 = load i32, i32* %v_Salary
+> 	%_4 = getelementptr i8, i8* %this, i32 12
+> 	%_5 = bitcast i8* %_4 to i32*
+> 	store i32 %_3, i32* %_5
+> 	
+> 	%_6 = load i1, i1* %v_Married
+> 	%_7 = getelementptr i8, i8* %this, i32 16
+> 	%_8 = bitcast i8* %_7 to i1*
+> 	store i1 %_6, i1* %_8
+> 	
+79d66
+< define i32 @Element.GetAge(i8* %this) {
+80a68
+> define i32 @Element.GetAge(i8* %this) {
+86d73
+< define i32 @Element.GetSalary(i8* %this) {
+87a75
+> define i32 @Element.GetSalary(i8* %this) {
+93d80
+< define i1 @Element.GetMarried(i8* %this) {
+94a82
+> define i1 @Element.GetMarried(i8* %this) {
+99a88
+> 
+103d91
+< 
+104a93
+> 	
+105a95
+> 	
+106a97
+> 	
+107a99
+> 	
+108a101
+> 	
+110c103
+< 	; Element.GetAge: 8
+---
+> 	; Element.GetAge : 1
+113c106
+< 	%_3 = getelementptr i8*, i8** %_2, i32 8
+---
+> 	%_3 = getelementptr i8*, i8** %_2, i32 1
+118,223c111,235
+< 	; Element.Compare: 40
+< 	%_7 = bitcast i8* %this to i8***
+< 	%_8 = load i8**, i8*** %_7
+< 	%_9 = getelementptr i8*, i8** %_8, i32 40
+< 	%_10 = load i8*, i8** %_9
+< 	%_11 = bitcast i8* %_10 to i1 (i8*,i32,i32)*
+< 	%_12 = load i32, i32* %aux01
+< 	%_13 = getelementptr i8, i8* %this, i32 8
+< 	%_14 = bitcast i8* %_13 to i32*
+< 	%_15 = load i32, i32* %_14
+< 	%_16 = call i1 %_11(i8* %this, i32 %_12, i32 %_15)
+< %_17 = xor i1 1, %_16
+< 	br i1 %_17, label %if0, label %else0
+< if0:
+< 	store i1 0, i1* %ret_val
+< 
+< 	br label %end0
+< else0:
+< 	%_18 = load i8*, i8** %other
+< 	; Element.GetSalary: 16
+< 	%_19 = bitcast i8* %_18 to i8***
+< 	%_20 = load i8**, i8*** %_19
+< 	%_21 = getelementptr i8*, i8** %_20, i32 16
+< 	%_22 = load i8*, i8** %_21
+< 	%_23 = bitcast i8* %_22 to i32 (i8*)*
+< 	%_24 = call i32 %_23(i8* %_18)
+< 	store i32 %_24, i32* %aux02
+< 	; Element.Compare: 40
+< 	%_25 = bitcast i8* %this to i8***
+< 	%_26 = load i8**, i8*** %_25
+< 	%_27 = getelementptr i8*, i8** %_26, i32 40
+< 	%_28 = load i8*, i8** %_27
+< 	%_29 = bitcast i8* %_28 to i1 (i8*,i32,i32)*
+< 	%_30 = load i32, i32* %aux02
+< 	%_31 = getelementptr i8, i8* %this, i32 12
+< 	%_32 = bitcast i8* %_31 to i32*
+< 	%_33 = load i32, i32* %_32
+< 	%_34 = call i1 %_29(i8* %this, i32 %_30, i32 %_33)
+< %_35 = xor i1 1, %_34
+< 	br i1 %_35, label %if0, label %else0
+< if0:
+< 	store i1 0, i1* %ret_val
+< 
+< 	br label %end0
+< else0:
+< 	%_36 = getelementptr i8, i8* %this, i32 16
+< 	%_37 = bitcast i8* %_36 to i1*
+< 	%_38 = load i1, i1* %_37
+< 	br i1 %_38, label %if0, label %else0
+< if0:
+< 	%_39 = load i8*, i8** %other
+< 	; Element.GetMarried: 24
+< 	%_40 = bitcast i8* %_39 to i8***
+< 	%_41 = load i8**, i8*** %_40
+< 	%_42 = getelementptr i8*, i8** %_41, i32 24
+< 	%_43 = load i8*, i8** %_42
+< 	%_44 = bitcast i8* %_43 to i1 (i8*)*
+< 	%_45 = call i1 %_44(i8* %_39)
+< %_46 = xor i1 1, %_45
+< 	br i1 %_46, label %if0, label %else0
+< if0:
+< 	store i1 0, i1* %ret_val
+< 
+< 	br label %end0
+< else0:
+< 	store i32 0, i32* %nt
+< 
+< 	br label %end0
+< 
+< end0:
+< 
+< 	br label %end1
+< else1:
+< 	%_47 = load i8*, i8** %other
+< 	; Element.GetMarried: 24
+< 	%_48 = bitcast i8* %_47 to i8***
+< 	%_49 = load i8**, i8*** %_48
+< 	%_50 = getelementptr i8*, i8** %_49, i32 24
+< 	%_51 = load i8*, i8** %_50
+< 	%_52 = bitcast i8* %_51 to i1 (i8*)*
+< 	%_53 = call i1 %_52(i8* %_47)
+< 	br i1 %_53, label %if1, label %else1
+< if1:
+< 	store i1 0, i1* %ret_val
+< 
+< 	br label %end1
+< else1:
+< 	store i32 0, i32* %nt
+< 
+< 	br label %end1
+< 
+< end1:
+< 
+< 	br label %end2
+< 
+< end2:
+< 
+< 	br label %end3
+< 
+< end3:
+< 
+< 	br label %end4
+< 
+< end4:
+< 	%_54 = load i1, i1* %ret_val
+< 	ret i1 %_54
+---
+> 	
+> 	; Element.Compare : 5
+> 	%_11 = bitcast i8* %this to i8***
+> 	%_12 = load i8**, i8*** %_11
+> 	%_13 = getelementptr i8*, i8** %_12, i32 5
+> 	%_14 = load i8*, i8** %_13
+> 	%_15 = bitcast i8* %_14 to i1 (i8*,i32, i32)*
+> 	%_17 = load i32, i32* %aux01
+> 	%_18 = getelementptr i8, i8* %this, i32 8
+> 	%_19 = bitcast i8* %_18 to i32*
+> 	%_20 = load i32, i32* %_19
+> 	%_16 = call i1 %_15(i8* %this, i32 %_17, i32 %_20)
+> 	%_10 = xor i1 1, %_16
+> 	br i1 %_10, label %if7, label %if8
+> 
+> if7:
+> 		store i1 0, i1* %ret_val
+> 		
+> 		br label %if9
+> 
+> if8:
+> 
+> 		%_21 = load i8*, i8** %other
+> 		; Element.GetSalary : 2
+> 		%_22 = bitcast i8* %_21 to i8***
+> 		%_23 = load i8**, i8*** %_22
+> 		%_24 = getelementptr i8*, i8** %_23, i32 2
+> 		%_25 = load i8*, i8** %_24
+> 		%_26 = bitcast i8* %_25 to i32 (i8*)*
+> 		%_27 = call i32 %_26(i8* %_21)
+> 		store i32 %_27, i32* %aux02
+> 		
+> 		; Element.Compare : 5
+> 		%_32 = bitcast i8* %this to i8***
+> 		%_33 = load i8**, i8*** %_32
+> 		%_34 = getelementptr i8*, i8** %_33, i32 5
+> 		%_35 = load i8*, i8** %_34
+> 		%_36 = bitcast i8* %_35 to i1 (i8*,i32, i32)*
+> 		%_38 = load i32, i32* %aux02
+> 		%_39 = getelementptr i8, i8* %this, i32 12
+> 		%_40 = bitcast i8* %_39 to i32*
+> 		%_41 = load i32, i32* %_40
+> 		%_37 = call i1 %_36(i8* %this, i32 %_38, i32 %_41)
+> 		%_31 = xor i1 1, %_37
+> 		br i1 %_31, label %if28, label %if29
+> 
+> if28:
+> 			store i1 0, i1* %ret_val
+> 			
+> 			br label %if30
+> 
+> if29:
+> 
+> 			%_45 = getelementptr i8, i8* %this, i32 16
+> 			%_46 = bitcast i8* %_45 to i1*
+> 			%_47 = load i1, i1* %_46
+> 			br i1 %_47, label %if42, label %if43
+> 
+> if42:
+> 				%_52 = load i8*, i8** %other
+> 				; Element.GetMarried : 3
+> 				%_53 = bitcast i8* %_52 to i8***
+> 				%_54 = load i8**, i8*** %_53
+> 				%_55 = getelementptr i8*, i8** %_54, i32 3
+> 				%_56 = load i8*, i8** %_55
+> 				%_57 = bitcast i8* %_56 to i1 (i8*)*
+> 				%_58 = call i1 %_57(i8* %_52)
+> 				%_51 = xor i1 1, %_58
+> 				br i1 %_51, label %if48, label %if49
+> 
+> if48:
+> 					store i1 0, i1* %ret_val
+> 					
+> 					br label %if50
+> 
+> if49:
+> 
+> 					store i32 0, i32* %nt
+> 					
+> 					br label %if50
+> 
+> if50:
+> 				
+> 				br label %if44
+> 
+> if43:
+> 
+> 				%_62 = load i8*, i8** %other
+> 				; Element.GetMarried : 3
+> 				%_63 = bitcast i8* %_62 to i8***
+> 				%_64 = load i8**, i8*** %_63
+> 				%_65 = getelementptr i8*, i8** %_64, i32 3
+> 				%_66 = load i8*, i8** %_65
+> 				%_67 = bitcast i8* %_66 to i1 (i8*)*
+> 				%_68 = call i1 %_67(i8* %_62)
+> 				br i1 %_68, label %if59, label %if60
+> 
+> if59:
+> 					store i1 0, i1* %ret_val
+> 					
+> 					br label %if61
+> 
+> if60:
+> 
+> 					store i32 0, i32* %nt
+> 					
+> 					br label %if61
+> 
+> if61:
+> 				
+> 				br label %if44
+> 
+> if44:
+> 			
+> 			br label %if30
+> 
+> if30:
+> 		
+> 		
+> 		br label %if9
+> 
+> if9:
+> 	
+> 	%_69 = load i1, i1* %ret_val
+> 	ret i1 %_69
+224a237
+> 
+230d242
+< 
+231a244
+> 	
+232a246
+> 	
+233a248
+> 	
+237,245c252
+< 	%_2 = load i32, i32* %num1
+< 	%_3 = load i32, i32* %num2
+< 	%_4 = icmp slt i32 %_2, %_3
+< 	br i1 %_4, label %if0, label %else0
+< if0:
+< 	store i1 0, i1* %retval
+< 
+< 	br label %end0
+< else0:
+---
+> 	
+247c254
+< 	%_6 = load i32, i32* %aux02
+---
+> 	%_6 = load i32, i32* %num2
+249,252c256
+< %_8 = xor i1 1, %_7
+< 	br i1 %_8, label %if0, label %else0
+< if0:
+< 	store i1 0, i1* %retval
+---
+> 	br i1 %_7, label %if2, label %if3
+254,266c258,289
+< 	br label %end0
+< else0:
+< 	store i1 1, i1* %retval
+< 
+< 	br label %end0
+< 
+< end0:
+< 
+< 	br label %end1
+< 
+< end1:
+< 	%_9 = load i1, i1* %retval
+< 	ret i1 %_9
+---
+> if2:
+> 		store i1 0, i1* %retval
+> 		
+> 		br label %if4
+> 
+> if3:
+> 
+> 		%_12 = load i32, i32* %num1
+> 		%_13 = load i32, i32* %aux02
+> 		%_14 = icmp slt i32 %_12, %_13
+> 		%_11 = xor i1 1, %_14
+> 		br i1 %_11, label %if8, label %if9
+> 
+> if8:
+> 			store i1 0, i1* %retval
+> 			
+> 			br label %if10
+> 
+> if9:
+> 
+> 			store i1 1, i1* %retval
+> 			
+> 			br label %if10
+> 
+> if10:
+> 		
+> 		br label %if4
+> 
+> if4:
+> 	
+> 	%_15 = load i1, i1* %retval
+> 	ret i1 %_15
+268d290
+< define i1 @List.Init(i8* %this) {
+269a292
+> define i1 @List.Init(i8* %this) {
+272a296
+> 	
+274a299
+> 
+282,294c307,321
+< 
+< 	%_0 = getelementptr i8, i8* %this, i32 24
+< 	%_1 = bitcast i8* %_0 to i1*
+< 	%_2 = load i1, i1* %v_end
+< 	store i1 %_2, i1* %_1
+< 	%_3 = getelementptr i8, i8* %this, i32 8
+< 	%_4 = bitcast i8* %_3 to i8**
+< 	%_5 = load i8*, i8** %v_elem
+< 	store i8* %_5, i8** %_4
+< 	%_6 = getelementptr i8, i8* %this, i32 16
+< 	%_7 = bitcast i8* %_6 to i8**
+< 	%_8 = load i8*, i8** %v_next
+< 	store i8* %_8, i8** %_7
+---
+> 	%_0 = load i1, i1* %v_end
+> 	%_1 = getelementptr i8, i8* %this, i32 24
+> 	%_2 = bitcast i8* %_1 to i1*
+> 	store i1 %_0, i1* %_2
+> 	
+> 	%_3 = load i8*, i8** %v_elem
+> 	%_4 = getelementptr i8, i8* %this, i32 8
+> 	%_5 = bitcast i8* %_4 to i8**
+> 	store i8* %_3, i8** %_5
+> 	
+> 	%_6 = load i8*, i8** %v_next
+> 	%_7 = getelementptr i8, i8* %this, i32 16
+> 	%_8 = bitcast i8* %_7 to i8**
+> 	store i8* %_6, i8** %_8
+> 	
+296a324
+> 
+300d327
+< 
+301a329
+> 	
+302a331
+> 	
+303a333
+> 	
+304a335
+> 	
+309a341
+> 	
+311c343
+< 	; List.InitNew: 8
+---
+> 	; List.InitNew : 1
+314c346
+< 	%_6 = getelementptr i8*, i8** %_5, i32 8
+---
+> 	%_6 = getelementptr i8*, i8** %_5, i32 1
+316,320c348,353
+< 	%_8 = bitcast i8* %_7 to i1 (i8*,i8*,i8*,i1)*
+< 	%_9 = load i8*, i8** %new_elem
+< 	%_10 = load i8*, i8** %aux03
+< 	%_11 = call i1 %_8(i8* %_3, i8* %_9, i8* %_10, i1 0)
+< 	store i1 %_11, i1* %ret_val
+---
+> 	%_8 = bitcast i8* %_7 to i1 (i8*,i8*, i8*, i1)*
+> 	%_10 = load i8*, i8** %new_elem
+> 	%_11 = load i8*, i8** %aux03
+> 	%_9 = call i1 %_8(i8* %_3, i8* %_10, i8* %_11, i1 0)
+> 	store i1 %_9, i1* %ret_val
+> 	
+323a357
+> 
+327,331c361,365
+< 
+< 	%_0 = getelementptr i8, i8* %this, i32 16
+< 	%_1 = bitcast i8* %_0 to i8**
+< 	%_2 = load i8*, i8** %v_next
+< 	store i8* %_2, i8** %_1
+---
+> 	%_0 = load i8*, i8** %v_next
+> 	%_1 = getelementptr i8, i8* %this, i32 16
+> 	%_2 = bitcast i8* %_1 to i8**
+> 	store i8* %_0, i8** %_2
+> 	
+333a368
+> 
+337d371
+< 
+338a373
+> 	
+339a375
+> 	
+340a377
+> 	
+341a379
+> 	
+342a381
+> 	
+343a383
+> 	
+344a385
+> 	
+345a387
+> 	
+346a389
+> 	
+347a391
+> 	
+348a393
+> 	
+350a396
+> 	
+351a398
+> 	
+352a400
+> 	
+356a405
+> 	
+361,484c410,565
+< 	br label %loopInit0
+< loopInit0:
+< 	%_7 = load i1, i1* %var_end
+< %_8 = xor i1 1, %_7
+< 	br label %andStart0
+< 	andStart0:
+< 	br i1 %_8, label %andclause0, label %andclause2
+< andclause0:
+< 	%_9 = load i1, i1* %ret_val
+< %_10 = xor i1 1, %_9
+< 	br label %andclause1
+< andclause1:
+< 	br label %andclause2
+< andclause2:
+< %_11 = phi i1 [ 0,%andStart0], [ %_10, %andclause2]
+< 	br i1 %_11, label %loopStart0, label %loopEnd0
+< loopStart0:
+< 	%_12 = load i8*, i8** %e
+< 	; Element.Equal: 32
+< 	%_13 = bitcast i8* %_12 to i8***
+< 	%_14 = load i8**, i8*** %_13
+< 	%_15 = getelementptr i8*, i8** %_14, i32 32
+< 	%_16 = load i8*, i8** %_15
+< 	%_17 = bitcast i8* %_16 to i1 (i8*,i8*)*
+< 	%_18 = load i8*, i8** %var_elem
+< 	%_19 = call i1 %_17(i8* %_12, i8* %_18)
+< 	br i1 %_19, label %if0, label %else0
+< if0:
+< 	store i1 1, i1* %ret_val
+< 	%_20 = load i32, i32* %aux04
+< 	%_21 = icmp slt i32 %_20, 0
+< 	br i1 %_21, label %if0, label %else0
+< if0:
+< 	%_22 = load i8*, i8** %aux01
+< 	; List.GetNext: 64
+< 	%_23 = bitcast i8* %_22 to i8***
+< 	%_24 = load i8**, i8*** %_23
+< 	%_25 = getelementptr i8*, i8** %_24, i32 64
+< 	%_26 = load i8*, i8** %_25
+< 	%_27 = bitcast i8* %_26 to i8* (i8*)*
+< 	%_28 = call i8* %_27(i8* %_22)
+< 	store i8* %_28, i8** %my_head
+< 
+< 	br label %end0
+< else0:
+< 	%_29 = sub i32 0, 555
+< 	call void (i32) @print_int(i32 %_29)
+< 	%_30 = load i8*, i8** %prev
+< 	; List.SetNext: 24
+< 	%_31 = bitcast i8* %_30 to i8***
+< 	%_32 = load i8**, i8*** %_31
+< 	%_33 = getelementptr i8*, i8** %_32, i32 24
+< 	%_34 = load i8*, i8** %_33
+< 	%_35 = bitcast i8* %_34 to i1 (i8*,i8*)*
+< 	%_36 = load i8*, i8** %aux01
+< 	; List.GetNext: 64
+< 	%_37 = bitcast i8* %_36 to i8***
+< 	%_38 = load i8**, i8*** %_37
+< 	%_39 = getelementptr i8*, i8** %_38, i32 64
+< 	%_40 = load i8*, i8** %_39
+< 	%_41 = bitcast i8* %_40 to i8* (i8*)*
+< 	%_42 = call i8* %_41(i8* %_36)
+< 	%_43 = call i1 %_35(i8* %_30, i8* %_42)
+< 	store i1 %_43, i1* %aux05
+< 	%_44 = sub i32 0, 555
+< 	call void (i32) @print_int(i32 %_44)
+< 
+< 	br label %end0
+< 
+< end0:
+< 
+< 	br label %end1
+< else1:
+< 	store i32 0, i32* %nt
+< 
+< 	br label %end1
+< 
+< end1:
+< 	%_45 = load i1, i1* %ret_val
+< %_46 = xor i1 1, %_45
+< 	br i1 %_46, label %if2, label %else2
+< if2:
+< 	%_47 = load i8*, i8** %aux01
+< 	store i8* %_47, i8** %prev
+< 	%_48 = load i8*, i8** %aux01
+< 	; List.GetNext: 64
+< 	%_49 = bitcast i8* %_48 to i8***
+< 	%_50 = load i8**, i8*** %_49
+< 	%_51 = getelementptr i8*, i8** %_50, i32 64
+< 	%_52 = load i8*, i8** %_51
+< 	%_53 = bitcast i8* %_52 to i8* (i8*)*
+< 	%_54 = call i8* %_53(i8* %_48)
+< 	store i8* %_54, i8** %aux01
+< 	%_55 = load i8*, i8** %aux01
+< 	; List.GetEnd: 48
+< 	%_56 = bitcast i8* %_55 to i8***
+< 	%_57 = load i8**, i8*** %_56
+< 	%_58 = getelementptr i8*, i8** %_57, i32 48
+< 	%_59 = load i8*, i8** %_58
+< 	%_60 = bitcast i8* %_59 to i1 (i8*)*
+< 	%_61 = call i1 %_60(i8* %_55)
+< 	store i1 %_61, i1* %var_end
+< 	%_62 = load i8*, i8** %aux01
+< 	; List.GetElem: 56
+< 	%_63 = bitcast i8* %_62 to i8***
+< 	%_64 = load i8**, i8*** %_63
+< 	%_65 = getelementptr i8*, i8** %_64, i32 56
+< 	%_66 = load i8*, i8** %_65
+< 	%_67 = bitcast i8* %_66 to i8* (i8*)*
+< 	%_68 = call i8* %_67(i8* %_62)
+< 	store i8* %_68, i8** %var_elem
+< 	store i32 1, i32* %aux04
+< 
+< 	br label %end2
+< else2:
+< 	store i32 0, i32* %nt
+< 
+< 	br label %end2
+< 
+< end2:
+< 	br label %loopInit0
+< loopEnd0:
+< 	%_69 = load i8*, i8** %my_head
+< 	ret i8* %_69
+---
+> 	
+> 	br label %loop7
+> 
+> loop7:
+> 	%_11 = load i1, i1* %var_end
+> 	%_10 = xor i1 1, %_11
+> 	br label %andclause13
+> 
+> andclause13:
+> 	br i1 %_10, label %andclause14, label %andclause16
+> 
+> andclause14:
+> 	%_18 = load i1, i1* %ret_val
+> 	%_17 = xor i1 1, %_18
+> 	br label %andclause15
+> 
+> andclause15:
+> 	br label %andclause16
+> 
+> andclause16:
+> 	%_12 = phi i1 [ 0, %andclause13 ], [ %_17, %andclause15 ]
+> 	br i1 %_12, label %loop8, label %loop9
+> 
+> loop8:
+> 		%_22 = load i8*, i8** %e
+> 		; Element.Equal : 4
+> 		%_23 = bitcast i8* %_22 to i8***
+> 		%_24 = load i8**, i8*** %_23
+> 		%_25 = getelementptr i8*, i8** %_24, i32 4
+> 		%_26 = load i8*, i8** %_25
+> 		%_27 = bitcast i8* %_26 to i1 (i8*,i8*)*
+> 		%_29 = load i8*, i8** %var_elem
+> 		%_28 = call i1 %_27(i8* %_22, i8* %_29)
+> 		br i1 %_28, label %if19, label %if20
+> 
+> if19:
+> 			store i1 1, i1* %ret_val
+> 			
+> 			%_33 = load i32, i32* %aux04
+> 			%_34 = icmp slt i32 %_33, 0
+> 			br i1 %_34, label %if30, label %if31
+> 
+> if30:
+> 				%_35 = load i8*, i8** %aux01
+> 				; List.GetNext : 8
+> 				%_36 = bitcast i8* %_35 to i8***
+> 				%_37 = load i8**, i8*** %_36
+> 				%_38 = getelementptr i8*, i8** %_37, i32 8
+> 				%_39 = load i8*, i8** %_38
+> 				%_40 = bitcast i8* %_39 to i8* (i8*)*
+> 				%_41 = call i8* %_40(i8* %_35)
+> 				store i8* %_41, i8** %my_head
+> 				
+> 				
+> 				br label %if32
+> 
+> if31:
+> 
+> 				%_42 = sub i32 0, 555
+> 				call void (i32) @print_int(i32 %_42)
+> 				
+> 				%_43 = load i8*, i8** %prev
+> 				; List.SetNext : 3
+> 				%_44 = bitcast i8* %_43 to i8***
+> 				%_45 = load i8**, i8*** %_44
+> 				%_46 = getelementptr i8*, i8** %_45, i32 3
+> 				%_47 = load i8*, i8** %_46
+> 				%_48 = bitcast i8* %_47 to i1 (i8*,i8*)*
+> 				%_50 = load i8*, i8** %aux01
+> 				; List.GetNext : 8
+> 				%_51 = bitcast i8* %_50 to i8***
+> 				%_52 = load i8**, i8*** %_51
+> 				%_53 = getelementptr i8*, i8** %_52, i32 8
+> 				%_54 = load i8*, i8** %_53
+> 				%_55 = bitcast i8* %_54 to i8* (i8*)*
+> 				%_56 = call i8* %_55(i8* %_50)
+> 				%_49 = call i1 %_48(i8* %_43, i8* %_56)
+> 				store i1 %_49, i1* %aux05
+> 				
+> 				%_57 = sub i32 0, 555
+> 				call void (i32) @print_int(i32 %_57)
+> 				
+> 				
+> 				br label %if32
+> 
+> if32:
+> 			
+> 			
+> 			br label %if21
+> 
+> if20:
+> 
+> 			store i32 0, i32* %nt
+> 			
+> 			br label %if21
+> 
+> if21:
+> 		
+> 		%_62 = load i1, i1* %ret_val
+> 		%_61 = xor i1 1, %_62
+> 		br i1 %_61, label %if58, label %if59
+> 
+> if58:
+> 			%_63 = load i8*, i8** %aux01
+> 			store i8* %_63, i8** %prev
+> 			
+> 			%_64 = load i8*, i8** %aux01
+> 			; List.GetNext : 8
+> 			%_65 = bitcast i8* %_64 to i8***
+> 			%_66 = load i8**, i8*** %_65
+> 			%_67 = getelementptr i8*, i8** %_66, i32 8
+> 			%_68 = load i8*, i8** %_67
+> 			%_69 = bitcast i8* %_68 to i8* (i8*)*
+> 			%_70 = call i8* %_69(i8* %_64)
+> 			store i8* %_70, i8** %aux01
+> 			
+> 			%_71 = load i8*, i8** %aux01
+> 			; List.GetEnd : 6
+> 			%_72 = bitcast i8* %_71 to i8***
+> 			%_73 = load i8**, i8*** %_72
+> 			%_74 = getelementptr i8*, i8** %_73, i32 6
+> 			%_75 = load i8*, i8** %_74
+> 			%_76 = bitcast i8* %_75 to i1 (i8*)*
+> 			%_77 = call i1 %_76(i8* %_71)
+> 			store i1 %_77, i1* %var_end
+> 			
+> 			%_78 = load i8*, i8** %aux01
+> 			; List.GetElem : 7
+> 			%_79 = bitcast i8* %_78 to i8***
+> 			%_80 = load i8**, i8*** %_79
+> 			%_81 = getelementptr i8*, i8** %_80, i32 7
+> 			%_82 = load i8*, i8** %_81
+> 			%_83 = bitcast i8* %_82 to i8* (i8*)*
+> 			%_84 = call i8* %_83(i8* %_78)
+> 			store i8* %_84, i8** %var_elem
+> 			
+> 			store i32 1, i32* %aux04
+> 			
+> 			
+> 			br label %if60
+> 
+> if59:
+> 
+> 			store i32 0, i32* %nt
+> 			
+> 			br label %if60
+> 
+> if60:
+> 		
+> 		
+> 		br label %loop7
+> 
+> loop9:
+> 	
+> 	%_85 = load i8*, i8** %my_head
+> 	ret i8* %_85
+485a567
+> 
+489d570
+< 
+490a572
+> 	
+491a574
+> 	
+492a576
+> 	
+493a578
+> 	
+494a580
+> 	
+495a582
+> 	
+496a584
+> 	
+500a589
+> 	
+505,561c594,664
+< 	br label %loopInit0
+< loopInit0:
+< 	%_6 = load i1, i1* %var_end
+< %_7 = xor i1 1, %_6
+< 	br i1 %_7, label %loopStart0, label %loopEnd0
+< loopStart0:
+< 	%_8 = load i8*, i8** %e
+< 	; Element.Equal: 32
+< 	%_9 = bitcast i8* %_8 to i8***
+< 	%_10 = load i8**, i8*** %_9
+< 	%_11 = getelementptr i8*, i8** %_10, i32 32
+< 	%_12 = load i8*, i8** %_11
+< 	%_13 = bitcast i8* %_12 to i1 (i8*,i8*)*
+< 	%_14 = load i8*, i8** %var_elem
+< 	%_15 = call i1 %_13(i8* %_8, i8* %_14)
+< 	br i1 %_15, label %if0, label %else0
+< if0:
+< 	store i32 1, i32* %int_ret_val
+< 
+< 	br label %end0
+< else0:
+< 	store i32 0, i32* %nt
+< 
+< 	br label %end0
+< 
+< end0:
+< 	%_16 = load i8*, i8** %aux01
+< 	; List.GetNext: 64
+< 	%_17 = bitcast i8* %_16 to i8***
+< 	%_18 = load i8**, i8*** %_17
+< 	%_19 = getelementptr i8*, i8** %_18, i32 64
+< 	%_20 = load i8*, i8** %_19
+< 	%_21 = bitcast i8* %_20 to i8* (i8*)*
+< 	%_22 = call i8* %_21(i8* %_16)
+< 	store i8* %_22, i8** %aux01
+< 	%_23 = load i8*, i8** %aux01
+< 	; List.GetEnd: 48
+< 	%_24 = bitcast i8* %_23 to i8***
+< 	%_25 = load i8**, i8*** %_24
+< 	%_26 = getelementptr i8*, i8** %_25, i32 48
+< 	%_27 = load i8*, i8** %_26
+< 	%_28 = bitcast i8* %_27 to i1 (i8*)*
+< 	%_29 = call i1 %_28(i8* %_23)
+< 	store i1 %_29, i1* %var_end
+< 	%_30 = load i8*, i8** %aux01
+< 	; List.GetElem: 56
+< 	%_31 = bitcast i8* %_30 to i8***
+< 	%_32 = load i8**, i8*** %_31
+< 	%_33 = getelementptr i8*, i8** %_32, i32 56
+< 	%_34 = load i8*, i8** %_33
+< 	%_35 = bitcast i8* %_34 to i8* (i8*)*
+< 	%_36 = call i8* %_35(i8* %_30)
+< 	store i8* %_36, i8** %var_elem
+< 	br label %loopInit0
+< loopEnd0:
+< 	%_37 = load i32, i32* %int_ret_val
+< 	ret i32 %_37
+---
+> 	
+> 	br label %loop6
+> 
+> loop6:
+> 	%_10 = load i1, i1* %var_end
+> 	%_9 = xor i1 1, %_10
+> 	br i1 %_9, label %loop7, label %loop8
+> 
+> loop7:
+> 		%_14 = load i8*, i8** %e
+> 		; Element.Equal : 4
+> 		%_15 = bitcast i8* %_14 to i8***
+> 		%_16 = load i8**, i8*** %_15
+> 		%_17 = getelementptr i8*, i8** %_16, i32 4
+> 		%_18 = load i8*, i8** %_17
+> 		%_19 = bitcast i8* %_18 to i1 (i8*,i8*)*
+> 		%_21 = load i8*, i8** %var_elem
+> 		%_20 = call i1 %_19(i8* %_14, i8* %_21)
+> 		br i1 %_20, label %if11, label %if12
+> 
+> if11:
+> 			store i32 1, i32* %int_ret_val
+> 			
+> 			
+> 			br label %if13
+> 
+> if12:
+> 
+> 			store i32 0, i32* %nt
+> 			
+> 			br label %if13
+> 
+> if13:
+> 		
+> 		%_22 = load i8*, i8** %aux01
+> 		; List.GetNext : 8
+> 		%_23 = bitcast i8* %_22 to i8***
+> 		%_24 = load i8**, i8*** %_23
+> 		%_25 = getelementptr i8*, i8** %_24, i32 8
+> 		%_26 = load i8*, i8** %_25
+> 		%_27 = bitcast i8* %_26 to i8* (i8*)*
+> 		%_28 = call i8* %_27(i8* %_22)
+> 		store i8* %_28, i8** %aux01
+> 		
+> 		%_29 = load i8*, i8** %aux01
+> 		; List.GetEnd : 6
+> 		%_30 = bitcast i8* %_29 to i8***
+> 		%_31 = load i8**, i8*** %_30
+> 		%_32 = getelementptr i8*, i8** %_31, i32 6
+> 		%_33 = load i8*, i8** %_32
+> 		%_34 = bitcast i8* %_33 to i1 (i8*)*
+> 		%_35 = call i1 %_34(i8* %_29)
+> 		store i1 %_35, i1* %var_end
+> 		
+> 		%_36 = load i8*, i8** %aux01
+> 		; List.GetElem : 7
+> 		%_37 = bitcast i8* %_36 to i8***
+> 		%_38 = load i8**, i8*** %_37
+> 		%_39 = getelementptr i8*, i8** %_38, i32 7
+> 		%_40 = load i8*, i8** %_39
+> 		%_41 = bitcast i8* %_40 to i8* (i8*)*
+> 		%_42 = call i8* %_41(i8* %_36)
+> 		store i8* %_42, i8** %var_elem
+> 		
+> 		
+> 		br label %loop6
+> 
+> loop8:
+> 	
+> 	%_43 = load i32, i32* %int_ret_val
+> 	ret i32 %_43
+563d665
+< define i1 @List.GetEnd(i8* %this) {
+564a667
+> define i1 @List.GetEnd(i8* %this) {
+570d672
+< define i8* @List.GetElem(i8* %this) {
+571a674
+> define i8* @List.GetElem(i8* %this) {
+577d679
+< define i8* @List.GetNext(i8* %this) {
+578a681
+> define i8* @List.GetNext(i8* %this) {
+584d686
+< define i1 @List.Print(i8* %this) {
+585a688
+> define i1 @List.Print(i8* %this) {
+586a690
+> 	
+587a692
+> 	
+588a694
+> 	
+589a696
+> 	
+593a701
+> 	
+598,641c706,759
+< 	br label %loopInit0
+< loopInit0:
+< 	%_6 = load i1, i1* %var_end
+< %_7 = xor i1 1, %_6
+< 	br i1 %_7, label %loopStart0, label %loopEnd0
+< loopStart0:
+< 	%_8 = load i8*, i8** %var_elem
+< 	; Element.GetAge: 8
+< 	%_9 = bitcast i8* %_8 to i8***
+< 	%_10 = load i8**, i8*** %_9
+< 	%_11 = getelementptr i8*, i8** %_10, i32 8
+< 	%_12 = load i8*, i8** %_11
+< 	%_13 = bitcast i8* %_12 to i32 (i8*)*
+< 	%_14 = call i32 %_13(i8* %_8)
+< 	call void (i32) @print_int(i32 %_14)
+< 	%_15 = load i8*, i8** %aux01
+< 	; List.GetNext: 64
+< 	%_16 = bitcast i8* %_15 to i8***
+< 	%_17 = load i8**, i8*** %_16
+< 	%_18 = getelementptr i8*, i8** %_17, i32 64
+< 	%_19 = load i8*, i8** %_18
+< 	%_20 = bitcast i8* %_19 to i8* (i8*)*
+< 	%_21 = call i8* %_20(i8* %_15)
+< 	store i8* %_21, i8** %aux01
+< 	%_22 = load i8*, i8** %aux01
+< 	; List.GetEnd: 48
+< 	%_23 = bitcast i8* %_22 to i8***
+< 	%_24 = load i8**, i8*** %_23
+< 	%_25 = getelementptr i8*, i8** %_24, i32 48
+< 	%_26 = load i8*, i8** %_25
+< 	%_27 = bitcast i8* %_26 to i1 (i8*)*
+< 	%_28 = call i1 %_27(i8* %_22)
+< 	store i1 %_28, i1* %var_end
+< 	%_29 = load i8*, i8** %aux01
+< 	; List.GetElem: 56
+< 	%_30 = bitcast i8* %_29 to i8***
+< 	%_31 = load i8**, i8*** %_30
+< 	%_32 = getelementptr i8*, i8** %_31, i32 56
+< 	%_33 = load i8*, i8** %_32
+< 	%_34 = bitcast i8* %_33 to i8* (i8*)*
+< 	%_35 = call i8* %_34(i8* %_29)
+< 	store i8* %_35, i8** %var_elem
+< 	br label %loopInit0
+< loopEnd0:
+---
+> 	
+> 	br label %loop6
+> 
+> loop6:
+> 	%_10 = load i1, i1* %var_end
+> 	%_9 = xor i1 1, %_10
+> 	br i1 %_9, label %loop7, label %loop8
+> 
+> loop7:
+> 		%_11 = load i8*, i8** %var_elem
+> 		; Element.GetAge : 1
+> 		%_12 = bitcast i8* %_11 to i8***
+> 		%_13 = load i8**, i8*** %_12
+> 		%_14 = getelementptr i8*, i8** %_13, i32 1
+> 		%_15 = load i8*, i8** %_14
+> 		%_16 = bitcast i8* %_15 to i32 (i8*)*
+> 		%_17 = call i32 %_16(i8* %_11)
+> 		call void (i32) @print_int(i32 %_17)
+> 		
+> 		%_18 = load i8*, i8** %aux01
+> 		; List.GetNext : 8
+> 		%_19 = bitcast i8* %_18 to i8***
+> 		%_20 = load i8**, i8*** %_19
+> 		%_21 = getelementptr i8*, i8** %_20, i32 8
+> 		%_22 = load i8*, i8** %_21
+> 		%_23 = bitcast i8* %_22 to i8* (i8*)*
+> 		%_24 = call i8* %_23(i8* %_18)
+> 		store i8* %_24, i8** %aux01
+> 		
+> 		%_25 = load i8*, i8** %aux01
+> 		; List.GetEnd : 6
+> 		%_26 = bitcast i8* %_25 to i8***
+> 		%_27 = load i8**, i8*** %_26
+> 		%_28 = getelementptr i8*, i8** %_27, i32 6
+> 		%_29 = load i8*, i8** %_28
+> 		%_30 = bitcast i8* %_29 to i1 (i8*)*
+> 		%_31 = call i1 %_30(i8* %_25)
+> 		store i1 %_31, i1* %var_end
+> 		
+> 		%_32 = load i8*, i8** %aux01
+> 		; List.GetElem : 7
+> 		%_33 = bitcast i8* %_32 to i8***
+> 		%_34 = load i8**, i8*** %_33
+> 		%_35 = getelementptr i8*, i8** %_34, i32 7
+> 		%_36 = load i8*, i8** %_35
+> 		%_37 = bitcast i8* %_36 to i8* (i8*)*
+> 		%_38 = call i8* %_37(i8* %_32)
+> 		store i8* %_38, i8** %var_elem
+> 		
+> 		
+> 		br label %loop6
+> 
+> loop8:
+> 	
+644d761
+< define i32 @LL.Start(i8* %this) {
+645a763
+> define i32 @LL.Start(i8* %this) {
+646a765
+> 	
+647a767
+> 	
+648a769
+> 	
+649a771
+> 	
+650a773
+> 	
+651a775
+> 	
+656a781
+> 	
+658c783
+< 	; List.Init: 0
+---
+> 	; List.Init : 0
+665a791
+> 	
+667a794
+> 	
+669c796
+< 	; List.Init: 0
+---
+> 	; List.Init : 0
+676a804
+> 	
+678c806
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+681c809
+< 	%_21 = getelementptr i8*, i8** %_20, i32 72
+---
+> 	%_21 = getelementptr i8*, i8** %_20, i32 9
+685a814
+> 	
+690a820
+> 	
+692c822
+< 	; Element.Init: 0
+---
+> 	; Element.Init : 0
+697c827
+< 	%_33 = bitcast i8* %_32 to i1 (i8*,i32,i32,i1)*
+---
+> 	%_33 = bitcast i8* %_32 to i1 (i8*,i32, i32, i1)*
+699a830
+> 	
+701c832
+< 	; List.Insert: 16
+---
+> 	; List.Insert : 2
+704c835
+< 	%_38 = getelementptr i8*, i8** %_37, i32 16
+---
+> 	%_38 = getelementptr i8*, i8** %_37, i32 2
+707,709c838,841
+< 	%_41 = load i8*, i8** %el01
+< 	%_42 = call i8* %_40(i8* %_35, i8* %_41)
+< 	store i8* %_42, i8** %head
+---
+> 	%_42 = load i8*, i8** %el01
+> 	%_41 = call i8* %_40(i8* %_35, i8* %_42)
+> 	store i8* %_41, i8** %head
+> 	
+711c843
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+714c846
+< 	%_46 = getelementptr i8*, i8** %_45, i32 72
+---
+> 	%_46 = getelementptr i8*, i8** %_45, i32 9
+718a851
+> 	
+719a853
+> 	
+724a859
+> 	
+726c861
+< 	; Element.Init: 0
+---
+> 	; Element.Init : 0
+731c866
+< 	%_58 = bitcast i8* %_57 to i1 (i8*,i32,i32,i1)*
+---
+> 	%_58 = bitcast i8* %_57 to i1 (i8*,i32, i32, i1)*
+733a869
+> 	
+735a872
+> 	
+737c874
+< 	; List.Insert: 16
+---
+> 	; List.Insert : 2
+740c877
+< 	%_64 = getelementptr i8*, i8** %_63, i32 16
+---
+> 	%_64 = getelementptr i8*, i8** %_63, i32 2
+743,745c880,883
+< 	%_67 = load i8*, i8** %el01
+< 	%_68 = call i8* %_66(i8* %_61, i8* %_67)
+< 	store i8* %_68, i8** %head
+---
+> 	%_68 = load i8*, i8** %el01
+> 	%_67 = call i8* %_66(i8* %_61, i8* %_68)
+> 	store i8* %_67, i8** %head
+> 	
+747c885
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+750c888
+< 	%_72 = getelementptr i8*, i8** %_71, i32 72
+---
+> 	%_72 = getelementptr i8*, i8** %_71, i32 9
+754a893
+> 	
+755a895
+> 	
+760a901
+> 	
+762c903
+< 	; Element.Init: 0
+---
+> 	; Element.Init : 0
+767c908
+< 	%_84 = bitcast i8* %_83 to i1 (i8*,i32,i32,i1)*
+---
+> 	%_84 = bitcast i8* %_83 to i1 (i8*,i32, i32, i1)*
+769a911
+> 	
+771c913
+< 	; List.Insert: 16
+---
+> 	; List.Insert : 2
+774c916
+< 	%_89 = getelementptr i8*, i8** %_88, i32 16
+---
+> 	%_89 = getelementptr i8*, i8** %_88, i32 2
+777,779c919,922
+< 	%_92 = load i8*, i8** %el01
+< 	%_93 = call i8* %_91(i8* %_86, i8* %_92)
+< 	store i8* %_93, i8** %head
+---
+> 	%_93 = load i8*, i8** %el01
+> 	%_92 = call i8* %_91(i8* %_86, i8* %_93)
+> 	store i8* %_92, i8** %head
+> 	
+781c924
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+784c927
+< 	%_97 = getelementptr i8*, i8** %_96, i32 72
+---
+> 	%_97 = getelementptr i8*, i8** %_96, i32 9
+788a932
+> 	
+793a938
+> 	
+795c940
+< 	; Element.Init: 0
+---
+> 	; Element.Init : 0
+800c945
+< 	%_109 = bitcast i8* %_108 to i1 (i8*,i32,i32,i1)*
+---
+> 	%_109 = bitcast i8* %_108 to i1 (i8*,i32, i32, i1)*
+802a948
+> 	
+804c950
+< 	; List.Search: 40
+---
+> 	; List.Search : 5
+807c953
+< 	%_114 = getelementptr i8*, i8** %_113, i32 40
+---
+> 	%_114 = getelementptr i8*, i8** %_113, i32 5
+810,812c956,959
+< 	%_117 = load i8*, i8** %el02
+< 	%_118 = call i32 %_116(i8* %_111, i8* %_117)
+< 	call void (i32) @print_int(i32 %_118)
+---
+> 	%_118 = load i8*, i8** %el02
+> 	%_117 = call i32 %_116(i8* %_111, i8* %_118)
+> 	call void (i32) @print_int(i32 %_117)
+> 	
+814c961
+< 	; List.Search: 40
+---
+> 	; List.Search : 5
+817c964
+< 	%_122 = getelementptr i8*, i8** %_121, i32 40
+---
+> 	%_122 = getelementptr i8*, i8** %_121, i32 5
+820,822c967,970
+< 	%_125 = load i8*, i8** %el03
+< 	%_126 = call i32 %_124(i8* %_119, i8* %_125)
+< 	call void (i32) @print_int(i32 %_126)
+---
+> 	%_126 = load i8*, i8** %el03
+> 	%_125 = call i32 %_124(i8* %_119, i8* %_126)
+> 	call void (i32) @print_int(i32 %_125)
+> 	
+823a972
+> 	
+828a978
+> 	
+830c980
+< 	; Element.Init: 0
+---
+> 	; Element.Init : 0
+835c985
+< 	%_135 = bitcast i8* %_134 to i1 (i8*,i32,i32,i1)*
+---
+> 	%_135 = bitcast i8* %_134 to i1 (i8*,i32, i32, i1)*
+837a988
+> 	
+839c990
+< 	; List.Insert: 16
+---
+> 	; List.Insert : 2
+842c993
+< 	%_140 = getelementptr i8*, i8** %_139, i32 16
+---
+> 	%_140 = getelementptr i8*, i8** %_139, i32 2
+845,847c996,999
+< 	%_143 = load i8*, i8** %el01
+< 	%_144 = call i8* %_142(i8* %_137, i8* %_143)
+< 	store i8* %_144, i8** %head
+---
+> 	%_144 = load i8*, i8** %el01
+> 	%_143 = call i8* %_142(i8* %_137, i8* %_144)
+> 	store i8* %_143, i8** %head
+> 	
+849c1001
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+852c1004
+< 	%_148 = getelementptr i8*, i8** %_147, i32 72
+---
+> 	%_148 = getelementptr i8*, i8** %_147, i32 9
+856a1009
+> 	
+857a1011
+> 	
+859c1013
+< 	; List.Delete: 32
+---
+> 	; List.Delete : 4
+862c1016
+< 	%_155 = getelementptr i8*, i8** %_154, i32 32
+---
+> 	%_155 = getelementptr i8*, i8** %_154, i32 4
+865,867c1019,1022
+< 	%_158 = load i8*, i8** %el02
+< 	%_159 = call i8* %_157(i8* %_152, i8* %_158)
+< 	store i8* %_159, i8** %head
+---
+> 	%_159 = load i8*, i8** %el02
+> 	%_158 = call i8* %_157(i8* %_152, i8* %_159)
+> 	store i8* %_158, i8** %head
+> 	
+869c1024
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+872c1027
+< 	%_163 = getelementptr i8*, i8** %_162, i32 72
+---
+> 	%_163 = getelementptr i8*, i8** %_162, i32 9
+876a1032
+> 	
+877a1034
+> 	
+879c1036
+< 	; List.Delete: 32
+---
+> 	; List.Delete : 4
+882c1039
+< 	%_170 = getelementptr i8*, i8** %_169, i32 32
+---
+> 	%_170 = getelementptr i8*, i8** %_169, i32 4
+885,887c1042,1045
+< 	%_173 = load i8*, i8** %el01
+< 	%_174 = call i8* %_172(i8* %_167, i8* %_173)
+< 	store i8* %_174, i8** %head
+---
+> 	%_174 = load i8*, i8** %el01
+> 	%_173 = call i8* %_172(i8* %_167, i8* %_174)
+> 	store i8* %_173, i8** %head
+> 	
+889c1047
+< 	; List.Print: 72
+---
+> 	; List.Print : 9
+892c1050
+< 	%_178 = getelementptr i8*, i8** %_177, i32 72
+---
+> 	%_178 = getelementptr i8*, i8** %_177, i32 9
+896a1055
+> 	
+897a1057
+> 	
