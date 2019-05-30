@@ -163,22 +163,133 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      return pr;
   }
 
-  // /**
-  //  * f0 -> "new"
-  //  * f1 -> "int"
-  //  * f2 -> "["
-  //  * f3 -> Expression()
-  //  * f4 -> "]"
-  //  */
-  // public String[] visit(ArrayAllocationExpression n, Map argu) throws Exception {
-  //    n.f0.accept(this, argu);
-  //    n.f1.accept(this, argu);
-  //    n.f2.accept(this, argu);
-  //    n.f3.accept(this, argu);
-  //    n.f4.accept(this, argu);
-  //    return "int[]";
-  // }
-  //
+  /**
+   * f0 -> "new"
+   * f1 -> "int"
+   * f2 -> "["
+   * f3 -> Expression()
+   * f4 -> "]"
+   */
+  public String[] visit(ArrayAllocationExpression n, Map argu) throws Exception {
+     String[] expr = n.f3.accept(this, argu);
+
+     System.out.println("\t%_"+temps_vars+" = icmp slt i32 "+expr[1]+", 0");
+     System.out.println("\tbr i1 %_"+temps_vars+", label %arr_alloc"+numIfs+", label %arr_alloc"+(numIfs+1));
+     temps_vars++;
+     System.out.println("arr_alloc"+numIfs+":");
+     System.out.println("\tcall void @throw_oob()");
+     System.out.println("\tbr label %arr_alloc"+(numIfs+1));
+     System.out.println("arr_alloc"+(numIfs+1)+":");
+
+  //  %_3 = add i32 %_9, 1
+ 	// %_4 = call i8* @calloc(i32 4, i32 %_3)
+ 	// %_5 = bitcast i8* %_4 to i32*
+ 	// store i32 %_9, i32* %_5
+ 	// %_10 = getelementptr i8, i8* %this, i32 8
+ 	// %_11 = bitcast i8* %_10 to i32**
+ 	// store i32* %_5, i32** %_11
+     System.out.println("\t%_"+temps_vars+" = add i32 "+expr[1]+", 1");
+     temps_vars++;
+     System.out.println("\t%_"+temps_vars+" = call i8* @calloc(i32 4,i32 %_"+(temps_vars-1)+")");
+     temps_vars++;
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to i32");
+     System.out.println("\tstore i32 "+expr[1]+", i32* %_"+temps_vars);
+     String[] res= new String[2];
+     res[0] = "i32*";
+     res[1] = "%_"+temps_vars;
+     temps_vars++;
+     // System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+);
+
+     return res;
+  }
+
+  /**
+   * f0 -> Identifier()
+   * f1 -> "["
+   * f2 -> Expression()
+   * f3 -> "]"
+   * f4 -> "="
+   * f5 -> Expression()
+   * f6 -> ";"
+   */
+  public String[] visit(ArrayAssignmentStatement n, Map argu) throws Exception {
+     String[] Ident_arr = n.f0.accept(this, argu);
+
+     ClassForm classF = (ClassForm) argu.get(currentClass);
+     MethodForm methF = classF.Methods.get(currentMeth);
+     if(check_in_meth(Ident_arr[1],methF)==null) {
+       String[] offset = check_var(Ident_arr[1],currentClass,argu);
+       offset[0] = "i32*";
+       System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+offset[1]);
+       temps_vars++;
+       System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+offset[0]+"*");
+       temps_vars++;
+
+       Ident_arr[1] = "_"+(temps_vars-1);
+     }
+
+
+
+     String[] expr1 = n.f2.accept(this, argu);
+     String[] expr2 = n.f5.accept(this, argu);
+     String arr = "%_"+temps_vars;
+     System.out.println("%_"+temps_vars+" = load i32*, i32** %_"+Ident_arr[1]);
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = load i32, i32 *%_"+(temps_vars-1));
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = icmp ult i32 "+expr1[1]+", "+(temps_vars-1));
+     System.out.println("br i1 %_"+temps_vars+", label %oob"+numIfs+", label %oob"+(numIfs+1));
+     temps_vars++;
+     System.out.println("oob"+numIfs+":");
+
+     System.out.println("%_"+temps_vars+" = add i32 "+expr1[1]+", 1");
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = getelementptr i32, i32* "+arr+", i32 %_"+(temps_vars-1));
+     System.out.println("store i32 "+expr2[1]+", i32* %_"+temps_vars);
+     System.out.println("br label %oob"+(numIfs+2));
+     System.out.println("oob"+(numIfs+1)+":");
+     System.out.println("call void @throw_oob()");
+     System.out.println("br label %oob"+(numIfs+2));
+     System.out.println("oob"+(numIfs+2)+":");
+     numIfs++;
+     temps_vars++;
+     return null;
+  }
+
+  /**
+   * f0 -> PrimaryExpression()
+   * f1 -> "["
+   * f2 -> PrimaryExpression()
+   * f3 -> "]"
+   */
+  public String[] visit(ArrayLookup n, Map argu) throws Exception {
+     String[] pr1 = n.f0.accept(this, argu);
+     String[] pr2 = n.f2.accept(this, argu);
+     System.out.println("%_"+temps_vars+" = load i32, i32 *"+pr1[1]);
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = icmp ult i32 "+pr2[1]+", "+(temps_vars-1));
+     System.out.println("br i1 %_"+temps_vars+", label %oob"+numIfs+", label %oob"+(numIfs+1));
+     temps_vars++;
+     System.out.println("oob"+numIfs+":");
+
+     System.out.println("%_"+temps_vars+" = add i32 "+pr2[1]+", 1");
+     temps_vars++;
+     System.out.println("%_"+temps_vars+" = getelementptr i32, i32* "+pr1[1]+", i32 %_"+(temps_vars-1));
+     temps_vars++;
+     System.out.println("%_"+temps_vars +" = load i32, i32* %_"+(temps_vars-1));
+     System.out.println("br label %oob"+(numIfs+2));
+     System.out.println("oob"+(numIfs+1)+":");
+     System.out.println("call void @throw_oob()");
+     System.out.println("br label %oob"+(numIfs+2));
+     System.out.println("oob"+(numIfs+2)+":");
+     numIfs++;
+     String[] res= new String[2];
+     res[0] = "i32";
+     res[1] = "%_"+temps_vars;
+     temps_vars++;
+     return res;
+  }
+
 
   /**
    * f0 -> "new"
@@ -292,19 +403,22 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
        type = expr[0];
        value = expr[1];
      }
-
-     System.out.println("\tbr i1 "+value+", label %if"+String.valueOf(numIfs)+", label %else"+String.valueOf(numIfs));
-     System.out.println("if"+String.valueOf(numIfs)+":");
+     String labelIf = "if"+numIfs;
+     String labelElse = "else"+numIfs;
+     String labelEnd = "end"+numIfs;
+     numIfs++;
+     System.out.println("\tbr i1 "+value+", label %"+labelIf+", label %"+labelElse);
+     System.out.println(labelIf+":");
 
      n.f4.accept(this, argu);
-     System.out.println("\n\tbr label %end"+String.valueOf(numIfs));
-     System.out.println("else"+String.valueOf(numIfs)+":");
+     System.out.println("\n\tbr label %"+labelEnd);
+     System.out.println(labelElse+":");
      //
      n.f6.accept(this, argu);
-     System.out.println("\n\tbr label %end"+String.valueOf(numIfs));
+     System.out.println("\n\tbr label %"+labelEnd);
 
-     System.out.println("\nend"+String.valueOf(numIfs)+":");
-     numIfs++;
+     System.out.println("\n"+labelEnd+":");
+
      return null;
   }
 
