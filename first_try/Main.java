@@ -15,8 +15,14 @@ class Main {
 	FileInputStream fis = null;
   for(String arg: args) { // for all arguments
   	try{
-        // System.out.println(arg);
+        String extensionRemoved = arg.split(".java")[0];
+        String fileWrite = extensionRemoved+".ll";
+        System.err.println(fileWrite);
   	    fis = new FileInputStream(arg);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileWrite));
+        writer.write("declare i8* @calloc(i32, i32)\ndeclare i32 @printf(i8*, ...)\ndeclare void @exit(i32)\n@_cint = constant [4 x i8] c\"%d\\0a\\00\"\n@_cOOB = constant [15 x i8] c\"Out of bounds\\0a\\00\"\ndefine void @print_int(i32 %i) {\n%_str = bitcast [4 x i8]* @_cint to i8*\ncall i32 (i8*, ...) @printf(i8* %_str, i32 %i)\nret void\n}\ndefine void @throw_oob() {\n  \n%_str = bitcast [15 x i8]* @_cOOB to i8*\ncall i32 (i8*, ...) @printf(i8* %_str)\ncall void @exit(i32 1)\nret void\n}");
+        writer.write("write krrrraa");
+        writer.close();
   	    MiniJavaParser parser = new MiniJavaParser(fis);
   	    System.err.println("Program parsed successfully: "+arg);
  	      TableVisitor eval = new TableVisitor();

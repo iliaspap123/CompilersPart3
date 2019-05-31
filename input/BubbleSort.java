@@ -17,11 +17,16 @@ class BBS{
     // Methods
     public int Start(int sz){
 	int aux01 ;
-	aux01 = this.Init(sz);
+System.out.println(1);	
+aux01 = this.Init(sz);
+System.out.println(2);
 	aux01 = this.Print();
+System.out.println(3);
 	System.out.println(99999);
 	aux01 = this.Sort();
+System.out.println(4);
 	aux01 = this.Print();
+System.out.println(5);
 	return 0 ;
     }
 
@@ -37,8 +42,10 @@ class BBS{
 	int aux07 ;
 	int j ;
 	int t ;
+
 	i = size - 1 ;
 	aux02 = 0 - 1 ;
+
 	while (aux02 < i) {
 	    j = 1 ;
 	    //aux03 = i+1 ;
@@ -75,9 +82,11 @@ class BBS{
     public int Init(int sz){
 	size = sz ;
 	number = new int[sz] ;
-	
+	System.out.println(11);
 	number[0] = 20 ;
+System.out.println(12);	
 	number[1] = 7  ; 
+System.out.println(13);
 	number[2] = 12 ;
 	number[3] = 18 ;
 	number[4] = 2  ; 
@@ -86,7 +95,7 @@ class BBS{
 	number[7] = 9  ; 
 	number[8] = 19 ; 
 	number[9] = 5  ;
-	
+System.out.println(14);
 	return 0 ;	
     }
 

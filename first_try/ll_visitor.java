@@ -32,8 +32,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
    */
   public String[] visit(MethodDeclaration n, Map argu) throws Exception {
      temps_vars = 0;
-     numIfs = 0;
-     numLoops = 0;
+     // numIfs = 0;
+     // numLoops = 0;
      String[] type = n.f1.accept(this, argu);
      String[] meth = n.f2.accept(this, argu);
      currentMeth = meth[1];
@@ -181,23 +181,18 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      System.out.println("\tbr label %arr_alloc"+(numIfs+1));
      System.out.println("arr_alloc"+(numIfs+1)+":");
 
-  //  %_3 = add i32 %_9, 1
- 	// %_4 = call i8* @calloc(i32 4, i32 %_3)
- 	// %_5 = bitcast i8* %_4 to i32*
- 	// store i32 %_9, i32* %_5
- 	// %_10 = getelementptr i8, i8* %this, i32 8
- 	// %_11 = bitcast i8* %_10 to i32**
- 	// store i32* %_5, i32** %_11
      System.out.println("\t%_"+temps_vars+" = add i32 "+expr[1]+", 1");
      temps_vars++;
      System.out.println("\t%_"+temps_vars+" = call i8* @calloc(i32 4,i32 %_"+(temps_vars-1)+")");
      temps_vars++;
-     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to i32");
+     System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to i32*");
      System.out.println("\tstore i32 "+expr[1]+", i32* %_"+temps_vars);
      String[] res= new String[2];
      res[0] = "i32*";
      res[1] = "%_"+temps_vars;
      temps_vars++;
+     numIfs += 2;
+
      // System.out.println("\t%_"+temps_vars+" = getelementptr i8, i8* %this, i32 "+);
 
      return res;
@@ -225,33 +220,34 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
        System.out.println("\t%_"+temps_vars+" = bitcast i8* %_"+(temps_vars-1)+" to "+offset[0]+"*");
        temps_vars++;
 
-       Ident_arr[1] = "_"+(temps_vars-1);
+       Ident_arr[1] = "%_"+(temps_vars-1);
      }
-
-
 
      String[] expr1 = n.f2.accept(this, argu);
      String[] expr2 = n.f5.accept(this, argu);
+     String oob1 = "oob"+numIfs;
+     String oob2 = "oob"+(numIfs+1);
+     String oob3 = "oob"+(numIfs+2);
+     numIfs += 3;
      String arr = "%_"+temps_vars;
-     System.out.println("%_"+temps_vars+" = load i32*, i32** %_"+Ident_arr[1]);
+     System.out.println("\t%_"+temps_vars+" = load i32*, i32** "+Ident_arr[1]);
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = load i32, i32 *%_"+(temps_vars-1));
+     System.out.println("\t%_"+temps_vars+" = load i32, i32 *%_"+(temps_vars-1));
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = icmp ult i32 "+expr1[1]+", "+(temps_vars-1));
-     System.out.println("br i1 %_"+temps_vars+", label %oob"+numIfs+", label %oob"+(numIfs+1));
+     System.out.println("\t%_"+temps_vars+" = icmp ult i32 "+expr1[1]+", %_"+(temps_vars-1));
+     System.out.println("\tbr i1 %_"+temps_vars+", label %"+oob1+", label %"+oob2);
      temps_vars++;
-     System.out.println("oob"+numIfs+":");
-
-     System.out.println("%_"+temps_vars+" = add i32 "+expr1[1]+", 1");
+     System.out.println(oob1+":");
+     //
+     System.out.println("\t%_"+temps_vars+" = add i32 "+expr1[1]+", 1");
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = getelementptr i32, i32* "+arr+", i32 %_"+(temps_vars-1));
-     System.out.println("store i32 "+expr2[1]+", i32* %_"+temps_vars);
-     System.out.println("br label %oob"+(numIfs+2));
-     System.out.println("oob"+(numIfs+1)+":");
-     System.out.println("call void @throw_oob()");
-     System.out.println("br label %oob"+(numIfs+2));
-     System.out.println("oob"+(numIfs+2)+":");
-     numIfs++;
+     System.out.println("\t%_"+temps_vars+" = getelementptr i32, i32* "+arr+", i32 %_"+(temps_vars-1));
+     System.out.println("\tstore i32 "+expr2[1]+", i32* %_"+temps_vars);
+     System.out.println("\tbr label %"+(oob3));
+     System.out.println(oob2+":");
+     System.out.println("\tcall void @throw_oob()");
+     System.out.println("\tbr label %"+oob3);
+     System.out.println(oob3+":");
      temps_vars++;
      return null;
   }
@@ -265,26 +261,31 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(ArrayLookup n, Map argu) throws Exception {
      String[] pr1 = n.f0.accept(this, argu);
      String[] pr2 = n.f2.accept(this, argu);
-     System.out.println("%_"+temps_vars+" = load i32, i32 *"+pr1[1]);
+     String oob1 = "oob"+numIfs;
+     String oob2 = "oob"+(numIfs+1);
+     String oob3 = "oob"+(numIfs+2);
+     numIfs+=3;
+     System.out.println("\t%_"+temps_vars+" = load i32, i32 *"+pr1[1]);
      temps_vars++;
-     System.out.println("%_"+temps_vars+" = icmp ult i32 "+pr2[1]+", "+(temps_vars-1));
-     System.out.println("br i1 %_"+temps_vars+", label %oob"+numIfs+", label %oob"+(numIfs+1));
+     System.out.println("\t%_"+temps_vars+" = icmp ult i32 "+pr2[1]+", %_"+(temps_vars-1));
+     System.out.println("\tbr i1 %_"+temps_vars+", label %"+oob1+", label %"+oob2);
      temps_vars++;
-     System.out.println("oob"+numIfs+":");
+     System.out.println(oob1+":");
 
      System.out.println("%_"+temps_vars+" = add i32 "+pr2[1]+", 1");
      temps_vars++;
      System.out.println("%_"+temps_vars+" = getelementptr i32, i32* "+pr1[1]+", i32 %_"+(temps_vars-1));
      temps_vars++;
      System.out.println("%_"+temps_vars +" = load i32, i32* %_"+(temps_vars-1));
-     System.out.println("br label %oob"+(numIfs+2));
-     System.out.println("oob"+(numIfs+1)+":");
-     System.out.println("call void @throw_oob()");
-     System.out.println("br label %oob"+(numIfs+2));
-     System.out.println("oob"+(numIfs+2)+":");
-     numIfs++;
+     System.out.println("\tbr label %"+oob3);
+     System.out.println(oob2+":");
+     System.out.println("\tcall void @throw_oob()");
+     System.out.println("\tbr label %"+oob3);
+     System.out.println(oob3+":");
+     // numIfs++;
      String[] res= new String[2];
      res[0] = "i32";
+     // res[1] = "0";
      res[1] = "%_"+temps_vars;
      temps_vars++;
      return res;
@@ -339,6 +340,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   */
   public String[] visit(AssignmentStatement n, Map argu) throws Exception {
    String[] Ident_arr = n.f0.accept(this, argu);
+   String[] expr = n.f2.accept(this, argu);
 
    ClassForm classF = (ClassForm) argu.get(currentClass);
    MethodForm methF = classF.Methods.get(currentMeth);
@@ -368,14 +370,13 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
 
    }
 
-   String[] expr = n.f2.accept(this, argu);
    String type = null;
    String value = null;
    if(expr !=null) {
      type = expr[0];
      value = expr[1];
    }
-   if(!type.equals("i1") && !type.equals("i32") && !type.equals("i8*")) {
+   if(!type.equals("i1") && !type.equals("i32") && !type.equals("i32*") && !type.equals("i8*")) {
      type = "i8*";
    }
    System.out.println("\tstore "+ type + " "+ value +", "+type+"* %"+Ident_arr[1]);
@@ -432,8 +433,12 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
    */
   public String[] visit(WhileStatement n, Map argu) throws Exception {
 
-     System.out.println("\tbr label %loopInit"+numLoops);
-     System.out.println("loopInit"+numLoops+":");
+     String loopInit = "loopInit"+numLoops;
+     String loopStart = "loopStart"+numLoops;
+     String loopEnd = "loopEnd"+numLoops;
+     numLoops++;
+     System.out.println("\tbr label %"+loopInit);
+     System.out.println(loopInit+":");
      String expr[] = n.f2.accept(this, argu);
 
      String type = null;
@@ -442,13 +447,12 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
        type = expr[0];
        value = expr[1];
      }
-     System.out.println("\tbr i1 "+value+", label %loopStart"+numLoops+", label %loopEnd"+numLoops);
-     System.out.println("loopStart"+numLoops+":");
+     System.out.println("\tbr i1 "+value+", label %"+loopStart+", label %"+loopEnd);
+     System.out.println(loopStart+":");
 
      n.f4.accept(this, argu);
-     System.out.println("\tbr label %loopInit"+numLoops);
-     System.out.println("loopEnd"+numLoops+":");
-     numLoops++;
+     System.out.println("\tbr label %"+loopInit);
+     System.out.println(loopEnd+":");
 
      return null;
   }
@@ -607,7 +611,13 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      // System.out.println(args);
      // %_11 = call i32 %_10(i8* %this, i32 %_13)
      String type_meth = get_meth_type(meth[1],pr[0],argu);
-     String line_call = "\t%_"+temps_vars+" = call "+type_meth+" "+call+"(i8* "+pr[1];
+     String line_call;
+     if(!type_meth.equals("i1") && !type_meth.equals("i32") && !type_meth.equals("i32*")) {
+        line_call = "\t%_"+temps_vars+" = call i8* "+call+"(i8* "+pr[1];
+     }
+     else {
+       line_call = "\t%_"+temps_vars+" = call "+type_meth+" "+call+"(i8* "+pr[1];
+     }
      for(String x : temp_args) {
        line_call += ", "+x;
      }
@@ -826,7 +836,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
       if(M.Methods.containsKey("main")) {
         continue;
       }
-      System.out.println("@."+className+"_vtable = global ["+M.MethodInfo.size()+" x i8*] [");
+      System.out.println("@."+className+"_vtable = global ["+M.Methods.size()+" x i8*] [");
       boolean first = true;
       for(String meth : M.Methods.keySet() ) {
         MethodForm methF = M.Methods.get(meth);
@@ -883,6 +893,25 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      return null;
   }
 
+  /**
+   * f0 -> "class"
+   * f1 -> Identifier()
+   * f2 -> "extends"
+   * f3 -> Identifier()
+   * f4 -> "{"
+   * f5 -> ( VarDeclaration() )*
+   * f6 -> ( MethodDeclaration() )*
+   * f7 -> "}"
+   */
+  public String[] visit(ClassExtendsDeclaration n, Map argu) throws Exception {
+     String[] className = n.f1.accept(this, argu);
+     currentClass = className[1];
+     n.f3.accept(this, argu);
+     n.f6.accept(this, argu);
+     return null;
+  }
+
+
   String check_in_meth(String var,MethodForm methF) {
     if(methF.Arguments.containsKey(var)) {
       return methF.Arguments.get(var);
@@ -910,17 +939,21 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     }
 
     String superClass = classF.Isimpliments;
+    // System.out.println("IN "+superClass);
     while(superClass != null) { //check in all super classes
       classF = (ClassForm) ClassTypes.get(superClass);
 
-      if(classF.ClassVars.get(var) != null) {
+      if(classF.ClassVars.get(clean_var) != null) {
         res[0] = classF.ClassVars.get(clean_var);
-        res[1] = String.valueOf(classF.ClassVarInfo.get(var)+8);
+        res[1] = String.valueOf(classF.ClassVarInfo.get(superClass+"."+clean_var)+8);
+        // System.out.println("OUT1");
         return res;
       }
 
       superClass = classF.Isimpliments;
     }
+    // System.out.println("OUT2");
+
     return null;
   }
 
@@ -957,10 +990,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     else if(methF.Type.equals("boolean")) {
       return "i1";
     }
-    else {
-      return "i8*";
+    return methF.Type;
     }
-  }
 
   String ret_args(String classMeth,String className,Map ClassTypes) {
     ClassForm M = (ClassForm) ClassTypes.get(className);
