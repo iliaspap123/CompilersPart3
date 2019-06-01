@@ -10,16 +10,16 @@ public class MyException extends Exception {
     Message = myMess;
   }
 
-  // public String getMessage() {
-  //   String Myerror = null;
-  //   if(MethodName == null) {
-  //     Myerror = "In class: " + ClassName + " with message: " + Message;
-  //   }
-  //   else {
-  //     Myerror = "In class: " + ClassName + " In Method: " + MethodName + " with message: " + Message;
-  //   }
-  //   return Myerror;
-  // }
+  public String getMessage() {
+    String Myerror = null;
+    if(MethodName == null) {
+      Myerror = "In class: " + ClassName + " with message: " + Message;
+    }
+    else {
+      Myerror = "In class: " + ClassName + " In Method: " + MethodName + " with message: " + Message;
+    }
+    return Myerror;
+  }
 
 
 }
