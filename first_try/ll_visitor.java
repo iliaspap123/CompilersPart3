@@ -1,6 +1,7 @@
 import syntaxtree.*;
 import visitor.GJDepthFirst;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.io.*;
@@ -313,15 +314,24 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      type[0] = type[1];
      ClassForm classF = (ClassForm) argu.get(type[0]);
      int size = (classF.offset_var+8);
-     int num_meth = classF.Methods.size();
+     // int num_meth = classF.Methods.size();
+     // while(classF.Isimpliments != null) {
+     //   classF = (ClassForm)argu.get(classF.Isimpliments);
+     //   num_meth+=classF.MethodInfo.size();
+     // }
+     String temptype = type[0];
+     LinkedHashMap<String,String> vtable = new LinkedHashMap();
+     fix_vtable(vtable,temptype,argu);
+     classF = (ClassForm) argu.get(type[0]);
      emit("\t%_"+temps_vars+" = call i8* @calloc(i32 1, i32 "+ size+")");
      type[1] = "%_"+temps_vars;
      temps_vars++;
      emit("\t%_"+temps_vars+" = bitcast i8* "+type[1]+" to i8***");
      temps_vars++;
-     emit("\t%_"+temps_vars+" = getelementptr ["+num_meth+" x i8*], ["+num_meth+" x i8*]* @."+type[0]+"_vtable, i32 0, i32 0");
+     emit("\t%_"+temps_vars+" = getelementptr ["+vtable.size()+" x i8*], ["+vtable.size()+" x i8*]* @."+type[0]+"_vtable, i32 0, i32 0");
      emit("\tstore i8** "+"%_"+temps_vars+", i8*** %_"+(temps_vars-1));
      temps_vars++;
+     //System.out.println("eftasa");
      return type;
   }
 
@@ -351,10 +361,12 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
   public String[] visit(AssignmentStatement n, Map argu) throws Exception {
    String[] Ident_arr = n.f0.accept(this, argu);
    String[] expr = n.f2.accept(this, argu);
-
+   //System.out.println(expr[0]);
    ClassForm classF = (ClassForm) argu.get(currentClass);
    MethodForm methF = classF.Methods.get(currentMeth);
    if(check_in_meth(Ident_arr[1],methF)==null) {
+     //System.out.println("ready");
+
      String[] offset = check_var(Ident_arr[1],currentClass,argu);
      if(offset[0].equals("int")) {
        Ident_arr[0] = "i32";
@@ -376,6 +388,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      Ident_arr[1] = "_"+(temps_vars-1);
 
    }
+   //System.out.println("kai edw");
 
    String type = null;
    String value = null;
@@ -587,6 +600,7 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
      // emit(pr[0]+" pr "+pr[1]);
      String[] meth = n.f2.accept(this, argu);
      int offset = check_meth(pr[0]+"."+meth[1],pr[0],argu)/8;
+     // System.out.println(offset);
      emit("\t; "+pr[0]+"."+meth[1]+": "+offset);
      // emit(pr[0]+" "+pr[1]+" "+" "+offset);
      emit("\t%_"+temps_vars+" = bitcast i8* "+pr[1]+" to i8***");
@@ -815,6 +829,21 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     return res;
   }
 
+  void fix_vtable(LinkedHashMap table,String className,Map ClassTypes){
+    ClassForm classF = (ClassForm)ClassTypes.get(className);
+    if(classF.Isimpliments == null) {
+      for(String keys : classF.Methods.keySet()) {
+        table.put(keys,className);
+      }
+      return;
+    }
+    fix_vtable(table,classF.Isimpliments,ClassTypes);
+    for(String keys : classF.Methods.keySet()) {
+      table.put(keys,className);
+    }
+    return;
+  }
+
   /**
    * f0 -> MainClass()
    * f1 -> ( TypeDeclaration() )*
@@ -830,44 +859,50 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
       if(M.Methods.containsKey("main")) {
         continue;
       }
-      int count_meth = M.MethodInfo.size();
-      while(M.Isimpliments != null) {
-        M = hash.get(M.Isimpliments);
-        count_meth+=M.MethodInfo.size();
-      }
+      // int count_meth = M.MethodInfo.size();
+      // while(M.Isimpliments != null) {
+      //   M = hash.get(M.Isimpliments);
+      //   count_meth+=M.MethodInfo.size();
+      // }
       M = hash.get(className);
-      emit("@."+className+"_vtable = global ["+M.Methods.size()+" x i8*] [");
+      LinkedHashMap<String,String> vtable = new LinkedHashMap();
+      fix_vtable(vtable,className,argu);
+      emit("@."+className+"_vtable = global ["+vtable.size()+" x i8*] [");
       boolean first = true;
-      for(String meth : M.Methods.keySet() ) {
-        MethodForm methF = M.Methods.get(meth);
-        String type = "i8*";
-        if(methF.Type.equals("int")) {
-          type = "i32";
-        }
-        else if(methF.Type.equals("boolean")) {
-          type = "i1";
-        }
-        if(first) {
-          first = false;
-        }
-        else {
-          emit(",");
-        }
-        emit("\t\t\t\ti8* bitcast ("+type+"(i8*");
-        for(String keys : methF.Arguments.keySet()) {
-          String arg_type = methF.Arguments.get(keys);
-          if(arg_type.equals("int")) {
-            arg_type = "i32";
+      // System.out.println(vtable);
+      for(String method : vtable.keySet()) {
+        String curClass = vtable.get(method);
+        M = hash.get(curClass);
+
+          MethodForm methF = M.Methods.get(method);
+          String type = "i8*";
+          if(methF.Type.equals("int")) {
+            type = "i32";
           }
-          else if(arg_type.equals("boolean")) {
-            arg_type = "i1";
+          else if(methF.Type.equals("boolean")) {
+            type = "i1";
+          }
+          if(first) {
+            first = false;
           }
           else {
-            arg_type = "i8*";
+            emit(",");
           }
-          emit(","+arg_type);
-        }
-        emit(")* @"+className+"."+meth+" to i8*)");
+          emit("\t\t\t\ti8* bitcast ("+type+"(i8*");
+          for(String keys : methF.Arguments.keySet()) {
+            String arg_type = methF.Arguments.get(keys);
+            if(arg_type.equals("int")) {
+              arg_type = "i32";
+            }
+            else if(arg_type.equals("boolean")) {
+              arg_type = "i1";
+            }
+            else {
+              arg_type = "i8*";
+            }
+            emit(","+arg_type);
+          }
+          emit(")* @"+curClass+"."+method+" to i8*)");
       }
 
       emit("\t\t\t\t]");
@@ -979,7 +1014,9 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
 
   String get_meth_type(String classMeth,String className,Map ClassTypes) {
     ClassForm M = (ClassForm) ClassTypes.get(className);
-
+    while(!M.Methods.containsKey(classMeth)) {
+      M = (ClassForm) ClassTypes.get(M.Isimpliments);
+    }
     MethodForm methF = M.Methods.get(classMeth);
     if(methF.Type.equals("int")) {
       return "i32";
@@ -992,7 +1029,9 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
 
   String ret_args(String classMeth,String className,Map ClassTypes) {
     ClassForm M = (ClassForm) ClassTypes.get(className);
-
+    while(!M.Methods.containsKey(classMeth)) {
+      M = (ClassForm) ClassTypes.get(M.Isimpliments);
+    }
     // for(String meth : M.Methods.keySet() ) {
       MethodForm methF = M.Methods.get(classMeth);
       String type = "i8*";
@@ -1044,6 +1083,8 @@ public class ll_visitor extends GJDepthFirst<String[], Map> {
     */
     public String[] visit(MainClass n, Map argu) throws Exception {
      String[] className = n.f1.accept(this, argu);
+     currentClass = className[1];
+     currentMeth = "main";
      emit("@."+className[1]+"_vtable = global [0 x i8*] []");
 
      emit("define i32 @main() {");

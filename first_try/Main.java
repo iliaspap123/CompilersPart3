@@ -24,7 +24,7 @@ class Main {
         Goal root = parser.Goal();
         root.accept(eval, null);
 
-        // for all classes print offsets //
+        // // for all classes print offsets //
         // for(String keys : eval.ClassTypes.keySet()) {
         //   ClassForm M = eval.ClassTypes.get(keys);
         //
