@@ -41,7 +41,7 @@ class TV {
 	ntb = root.Delete(12);
 	ntb = root.Print();
 	System.out.println(root.Search(12));
-
+	//nti = v.print();
 	return 0 ;
     }
 
@@ -345,6 +345,11 @@ class Visitor {
 	    nti = l.accept(this) ; }
 	else nti = 0 ;
 
+	return 0;
+    }
+
+    public int print(){
+	System.out.println(1);
 	return 0;
     }
 

@@ -95,7 +95,9 @@ System.out.println(13);
 	number[7] = 9  ; 
 	number[8] = 19 ; 
 	number[9] = 5  ;
+System.out.println(number.length);
 System.out.println(14);
+
 	return 0 ;	
     }
 
